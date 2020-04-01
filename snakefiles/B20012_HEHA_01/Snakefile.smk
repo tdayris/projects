@@ -621,10 +621,10 @@ rule pca_plots:
         )
     params:
         axes = [1, 2],
-        conditions = {
+        conditions = lambda wildcards : {
             k: v for k, v in zip(
                 design.index.tolist(),
-                design[factor].tolist()
+                design[wildcards.factor].tolist()
             )
         }
     log:

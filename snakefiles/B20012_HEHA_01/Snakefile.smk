@@ -68,12 +68,12 @@ localrules: download_fasta, download_fasta_cdna, download_gtf, copy_fq
 
 rule all:
     input:
-        "qc/multiqc.html"
-        "deseq/tximport.RDS",
-        "figures/pairwise_scatterplot.png",
-        "salmon/aggregated/TPM.counts.tsv",
-        "figures/box_counts.png",
-        expand(
+        multiqc = "qc/multiqc.html",
+        tximport = "deseq/tximport.RDS",
+        pairwise_scatterplot = "figures/pairwise_scatterplot.png",
+        count_table = "salmon/aggregated/TPM.counts.tsv",
+        boxplot = "figures/box_counts.png",
+        pca = expand(
             "figures/PCA/PCA_{factor}_PC1_PC2.png",
             factor = [
                 "Localization", "Gender", "Early_metastasis", "Treatment",

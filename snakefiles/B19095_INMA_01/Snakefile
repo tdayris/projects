@@ -4,6 +4,8 @@ import pandas
 from pathlib import Path
 from typing import Any, Dict, List
 
+swv = "0.50.4"
+git = "https://raw.githubusercontent.com/tdayris-perso/snakemake-wrappers"
 base_dir = Path("/mnt/beegfs/scratch/bioinfo_core/B19095_INMA_01")
 
 design = pandas.read_csv(
@@ -50,17 +52,16 @@ localrules: download_gtf, download_fasta, download_fasta_cdna
 
 rule all:
     input:
-        # MIxcr
-        # expand(
-        #     "mixcr/report/{sample}.tsv",
-        #     sample=design.index.tolist()
-        # ),
-        # expand(
-        #     "mixcr/assemble/{sample}.vdjca",
-        #     sample=design.index.tolist()
-        # ),
-        # "qc/multiqc.html",
-        # cdna = "resources/Homo_sapiens_cdna.fasta"
+        mixcr_tsv = expand(
+            "mixcr/report/{sample}.tsv",
+            sample=design.index.tolist()
+        ),
+        mixcr_bin = expand(
+            "mixcr/assemble/{sample}.vdjca",
+            sample=design.index.tolist()
+        ),
+        multiqc = "qc/multiqc.html",
+        cdna = "resources/Homo_sapiens_cdna.fasta",
         dst = "deseq2/vst.RDS",
         dds = "deseq2/dds.RDS",
         tr2gene = "resources/tr_to_gene.tsv",
@@ -280,7 +281,7 @@ rule download_gtf:
     log:
         "logs/ensembl_annotation/get_gtf.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-annotation"
+        f"{swv}/bio/reference/ensembl-annotation"
 
 
 rule download_fasta:
@@ -305,13 +306,13 @@ rule download_fasta:
     log:
         "logs/ensembl_annotation/get_genome.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-sequence"
+        f"{swv}/bio/reference/ensembl-sequence"
 
 
 rule star_index:
     input:
-        fasta = "resources/Homo_sapiens.fasta",
-        gtf = "resources/Homo_sapiens.gtf"
+        fasta = ancient("resources/Homo_sapiens.fasta"),
+        gtf = ancient("resources/Homo_sapiens.gtf")
     output:
         directory("star/index/Homo_sapiens")
     message:
@@ -332,13 +333,13 @@ rule star_index:
     log:
         "logs/star/index.log"
     wrapper:
-        "0.49.0/bio/star/index"
+        f"{swv}/bio/star/index"
 
 
 rule star_mapping:
     input:
         unpack(sample_pair_w),
-        index = "star/index/Homo_sapiens"
+        index = ancient("star/index/Homo_sapiens")
     output:
         temp("star/bam/{sample}/Aligned.sortedByCoord.out.bam")
     message:
@@ -369,7 +370,7 @@ rule star_mapping:
     log:
         "logs/star/bam/{sample}.log"
     wrapper:
-        "0.49.0/bio/star/align"
+        f"{swv}/bio/star/align"
 
 
 rule star_rename:
@@ -413,7 +414,7 @@ rule samtools_index:
     params:
         ""
     wrapper:
-        "0.49.0/bio/samtools/index"
+        f"{swv}/bio/samtools/index"
 
 
 rule samtools_flagstat:
@@ -435,7 +436,7 @@ rule samtools_flagstat:
     params:
         ""
     wrapper:
-        "0.49.0/bio/samtools/flagstat"
+        f"{swv}/bio/samtools/flagstat"
 
 
 rule download_fasta_cdna:
@@ -460,7 +461,7 @@ rule download_fasta_cdna:
     log:
         "logs/ensembl_annotation/get_genome.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-sequence"
+        f"{swv}/bio/reference/ensembl-sequence"
 
 
 rule correct_cdna_patch:
@@ -506,7 +507,7 @@ rule salmon_index:
     log:
         "logs/salmon/index.log"
     wrapper:
-        "0.49.0/bio/salmon/index"
+        f"{swv}/bio/salmon/index"
 
 
 rule salmon_quant:
@@ -532,7 +533,7 @@ rule salmon_quant:
     log:
         "logs/salmon/quant/{sample}.log"
     wrapper:
-        "0.49.0/bio/salmon/quant"
+        f"{swv}/bio/salmon/quant"
 
 
 rule fastqc:
@@ -557,7 +558,7 @@ rule fastqc:
     log:
         "logs/fastqc/{sample}.log"
     wrapper:
-        "0.49.0/bio/fastqc"
+        f"{swv}/bio/fastqc"
 
 
 rule multiqc:
@@ -593,7 +594,7 @@ rule multiqc:
     log:
         "logs/multiqc.log"
     wrapper:
-        "0.49.0/bio/multiqc"
+        f"{swv}/bio/multiqc"
 
 
 rule tx_to_gene:
@@ -752,7 +753,11 @@ rule deseq2_vst:
         dds = "deseq2/disp.RDS"
     output:
         rds = temp("deseq2/vst.RDS"),
-        tsv = "deseq2/VST.tsv"
+        tsv = report(
+            "deseq2/VST.tsv"
+            caption="../reports/deseq2.complete.table.rst",
+            category="Differential Expression"
+        )
     message:
         "Computing variance stabilizing transform"
     threads:

@@ -91,6 +91,8 @@ rule copy_fq:
         )
     wildcard_constraints:
         fq = r"[^/]+"
+    conda:
+        "../envs/bash.yaml"
     log:
         "logs/copy/{fq}.log"
     shell:
@@ -254,6 +256,8 @@ rule star_rename:
         )
     params:
         ""
+    conda:
+        "../envs/bash.yaml"
     log:
         "logs/rename/{sample}.log"
     shell:
@@ -553,3 +557,29 @@ rule box_count:
         "logs/box_count.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/box_counts"
+
+
+rule pairwise_scatterplot:
+    input:
+        counts = "salmon/aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/pairwise_scatterplot.png",
+            caption="../reports/pairwise_scatterplot.rst",
+            category="Figures"
+        )
+    message:
+        "Drawing pairwise scatterplot"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/pairwise_scatterplot.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/pairwise-scatterplot"

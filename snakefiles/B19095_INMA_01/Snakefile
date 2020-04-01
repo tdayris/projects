@@ -1,0 +1,801 @@
+import os.path
+import pandas
+
+from pathlib import Path
+from typing import Any, Dict, List
+
+base_dir = Path("/mnt/beegfs/scratch/bioinfo_core/B19095_INMA_01")
+
+design = pandas.read_csv(
+    base_dir / "design.tsv",
+    sep="\t",
+    header=0,
+    index_col=1,
+    dtype=str
+)
+
+design_dict = design.to_dict()
+
+
+def sample_pair_w(wildcards: Any) -> Dict[str, str]:
+    """
+    Given a sample name, this function returns a pair of fastq files
+    """
+    return {
+        "fq1": design_dict["Upstream_file"][wildcards.sample],
+        "fq2": design_dict["Downstream_file"][wildcards.sample]
+    }
+
+
+def salmon_sample_pair_w(wildcards: Any) -> Dict[str, str]:
+    """
+    Same as above, rename keys
+    """
+    return {
+        "r1": design_dict["Upstream_file"][wildcards.sample],
+        "r2": design_dict["Downstream_file"][wildcards.sample]
+    }
+
+
+samplsdict = {
+    os.path.basename(f): f
+    for f in chain(
+        design["Upstream_file"],
+        design["Downstream_file"]
+    )
+}
+
+localrules: download_gtf, download_fasta, download_fasta_cdna
+
+
+rule all:
+    input:
+        # MIxcr
+        # expand(
+        #     "mixcr/report/{sample}.tsv",
+        #     sample=design.index.tolist()
+        # ),
+        # expand(
+        #     "mixcr/assemble/{sample}.vdjca",
+        #     sample=design.index.tolist()
+        # ),
+        # "qc/multiqc.html",
+        # cdna = "resources/Homo_sapiens_cdna.fasta"
+        dst = "deseq2/vst.RDS",
+        dds = "deseq2/dds.RDS",
+        tr2gene = "resources/tr_to_gene.tsv",
+        annotation = "pcaExplorer/annot.RDS",
+        limmago = "pcaExplorer/limmago.RDS"
+    message:
+        "Finishing pipeline"
+
+
+rule mixcr_align:
+    input:
+        unpack(sample_pair_w)
+    output:
+        vdjca = temp("mixcr/align/{sample}.vdjca"),
+        report = "mixcr/align_report/{sample}.report"
+    message:
+        "Aligning {wildcards.sample} on vcjca"
+    message:
+        "Align {wildcards.sample} against V, D, J, and C genes"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(8192 * attempt, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(90 * attempt, 380)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/align/{sample}.logs"
+    params:
+        extra = "-p rna-seq -s hsa -OallowPartialAlignments=true"
+    shell:
+        "mixcr align"                # Tool and its subprocess
+        " -t {threads}"              # Maximum number of threads
+        " -r {output.report}"        # Path to report
+        " {params.extra}"                   # Optional parameters
+        " {input.fq1} {input.fq2} "  # Path to input file
+        " {output.vdjca}"            # Path to vdjca file
+        " > {log} 2>&1"              # Logging behavior
+
+
+rule mixcr_assembly_1:
+    input:
+        "mixcr/align/{sample}.vdjca"
+    output:
+        temp("mixcr/assembly_1/{sample}.vdjca")
+    message:
+        "First pass of the assembly of {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(4096 * attempt, 18432)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(75 * attempt, 380)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/assembly_1/{sample}.logs"
+    params:
+        extra = ""
+    shell:
+        "mixcr assemblePartial"  # Tool and its sub-command
+        " {params.extra}"               # Optional parameters
+        " {input}"               # Path to input file
+        " {output}"              # Path to output file
+        " > {log} 2>&1"          # Logging behavior
+
+
+rule mixcr_assembly_2:
+    input:
+        "mixcr/assembly_1/{sample}.vdjca"
+    output:
+        temp("mixcr/assembly_2/{sample}.vdjca")
+    message:
+        "Second pass of the assembly of {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(4096 * attempt, 18432)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(75 * attempt, 380)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/assembly_1/{sample}.logs"
+    params:
+        extra = ""
+    shell:
+        "mixcr assemblePartial"  # Tool and its sub-command
+        " {params.extra}"               # Optional parameters
+        " {input}"               # Path to input file
+        " {output}"              # Path to output file
+        " > {log} 2>&1"          # Logging behavior
+
+
+rule mixcr_extend:
+    input:
+        "mixcr/assembly_2/{sample}.vdjca"
+    output:
+        temp("mixcr/extend/{sample}.vdjca")
+    message:
+        "Extending incomplete TCD CDR3s in {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(4096 * attempt, 8192)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(45 * attempt, 380)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/extend/{sample}.logs"
+    params:
+        extra = ""
+    shell:
+        "mixcr extendAlignments"   # Tool and its subcommand
+        " {params.extra}"       # Optional parameters
+        " {input}"       # Path to input file
+        " {output}"      # Path to output file
+        " > {log} 2>&1"  # Logging behavior
+
+
+rule mixcr_assemble:
+    input:
+        "mixcr/extend/{sample}.vdjca"
+    output:
+        vdjca = "mixcr/assemble/{sample}.vdjca",
+        report = "mixcr/assemble_report/{sample}.report"
+    message:
+        "Assembling clonotypes for {wildcards.sample}"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(4096 * attempt, 8192)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(45 * attempt, 380)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/assemble/{sample}.logs"
+    params:
+        extra = ""
+    shell:
+        "mixcr assemble"         # Tool and its sub-command
+        " {params.extra}"               # Optional parameters
+        " -t {threads}"          # Maximum number of threads
+        " -r {output.report}"    # Path to report
+        " {input}"               # Path to input file
+        " {output.vdjca}"        # Path to output vdjca
+        " > {log} 2>&1"          # Logging behavior
+
+
+rule mixcr_export:
+    input:
+        "mixcr/assemble/{sample}.vdjca"
+    output:
+        "mixcr/report/{sample}.tsv"
+    message:
+        "Export clonotypes for {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(1024 * attempt, 3072)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(15 * attempt, 120)
+        )
+    conda:
+        "mixcr.yaml"
+    log:
+        "logs/mixcr/export/{sample}.logs"
+    params:
+        extra = ""
+    shell:
+        "mixcr exportClones"  # Tool and its sub-command
+        " {params.extra}"            # Optional arguments
+        " {input}"            # Path to input file
+        " {output}"           # Path to output file
+        " > {log} 2>&1"       # Logging behavior
+
+
+rule download_gtf:
+    output:
+        temp("resources/Homo_sapiens.gtf")
+    message:
+        "Downloading GTF from ensembl"
+    params:
+        species = "homo_sapiens",
+        release = "98",
+        build = "GRCh38",
+        fmt = "gtf"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(128 * attempt, 512)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(25 * attempt, 120)
+        )
+    log:
+        "logs/ensembl_annotation/get_gtf.log"
+    wrapper:
+        "0.49.0/bio/reference/ensembl-annotation"
+
+
+rule download_fasta:
+    output:
+        temp("resources/Homo_sapiens.fasta")
+    message:
+        "Downloading Fasta from ensembl"
+    params:
+        species = "homo_sapiens",
+        release = "98",
+        datatype = "dna",
+        build = "GRCh38"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(128 * attempt, 512)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(25 * attempt, 120)
+        )
+    log:
+        "logs/ensembl_annotation/get_genome.log"
+    wrapper:
+        "0.49.0/bio/reference/ensembl-sequence"
+
+
+rule star_index:
+    input:
+        fasta = "resources/Homo_sapiens.fasta",
+        gtf = "resources/Homo_sapiens.gtf"
+    output:
+        directory("star/index/Homo_sapiens")
+    message:
+        "Indexing GRCh38 with STAR"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(35840 + 10240 * attempt, 51200)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(35 * attempt, 120)
+        )
+    params:
+        gtf = "resources/Homo_sapiens.gtf",
+        sjdbOverhang = "100",
+        extra = ""
+    log:
+        "logs/star/index.log"
+    wrapper:
+        "0.49.0/bio/star/index"
+
+
+rule star_mapping:
+    input:
+        unpack(sample_pair_w),
+        index = "star/index/Homo_sapiens"
+    output:
+        temp("star/bam/{sample}/Aligned.sortedByCoord.out.bam")
+    message:
+        "Mapping {wildcards.sample} with STAR"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(35840 + 10240 * attempt, 51200)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(50 * attempt, 120)
+        )
+    params:
+        index = "star/index/Homo_sapiens",
+        extra = ("--outSAMtype BAM SortedByCoordinate "
+                 "--outSAMattributes All "
+                 "--outFilterType BySJout "
+                 "--outFilterMismatchNmax 999 "
+                 "--alignSJDBoverhangMin 1 "
+                 "--outFilterMismatchNoverReadLmax 0.04 "
+                 "--alignMatesGapMax 1000000 "
+                 "--alignIntronMax 1000000 "
+                 "--alignIntronMin 20 "
+                 "--alignSJoverhangMin 8 "
+                 "--outFilterMultimapNmax 20 "
+                 "--twopassMode Basic")
+    log:
+        "logs/star/bam/{sample}.log"
+    wrapper:
+        "0.49.0/bio/star/align"
+
+
+rule star_rename:
+    input:
+        "star/bam/{sample}/Aligned.sortedByCoord.out.bam"
+    output:
+        "star/bam/{sample}.bam"
+    message:
+        "Renaming {wildcards.sample} for further analyses"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(128 * attempt, 512)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(5 * attempt, 15)
+        )
+    params:
+        ""
+    log:
+        "logs/rename/{sample}.log"
+    shell:
+        "cp -v {input} {output} > {log} 2>&1"
+
+
+rule samtools_index:
+    input:
+        "star/bam/{sample}.bam"
+    output:
+        "star/bam/{sample}.bam.bai"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(512 * attempt, 1024)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(15 * attempt, 45)
+        )
+    params:
+        ""
+    wrapper:
+        "0.49.0/bio/samtools/index"
+
+
+rule samtools_flagstat:
+    input:
+        "star/bam/{sample}.bam"
+    output:
+        temp("samtools/flagstat/{sample}.flagstat")
+    message:
+        "Gathering statistics on {wildcards.sample}'s mapping"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(512 * attempt, 1024)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(15 * attempt, 45)
+        )
+    params:
+        ""
+    wrapper:
+        "0.49.0/bio/samtools/flagstat"
+
+
+rule download_fasta_cdna:
+    output:
+        temp("resources/Homo_sapiens_cdna_patch.fasta")
+    message:
+        "Downloading Fasta from ensembl"
+    params:
+        species = "homo_sapiens",
+        release = "98",
+        datatype = "cdna",
+        build = "GRCh38"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(128 * attempt, 512)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(25 * attempt, 120)
+        )
+    log:
+        "logs/ensembl_annotation/get_genome.log"
+    wrapper:
+        "0.49.0/bio/reference/ensembl-sequence"
+
+
+rule correct_cdna_patch:
+    input:
+        "resources/Homo_sapiens_cdna_patch.fasta"
+    output:
+        "resources/Homo_sapiens_cdna.fasta"
+    message:
+        "Removing patch ids from ensembl transcripts names"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/correct_cdna_patch.log"
+    shell:
+        "sed 's/\.[0-9]* / /g' {input} > {output} 2> {log}"
+
+
+rule salmon_index:
+    input:
+        "resources/Homo_sapiens_cdna.fasta"
+    output:
+        directory("salmon/index/Homo_sapiens")
+    message:
+        "Indexing hsa with Salmon"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(8192 + 1024 * attempt, 15360)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(25 * attempt, 120)
+        )
+    params:
+        extra = "--keepDuplicates --perfectHash"
+    log:
+        "logs/salmon/index.log"
+    wrapper:
+        "0.49.0/bio/salmon/index"
+
+
+rule salmon_quant:
+    input:
+        unpack(salmon_sample_pair_w),
+        index = "salmon/index/Homo_sapiens"
+    output:
+        quant = "salmon/quant/{sample}/quant.sf"
+    message:
+        "Quantifying {wildcards.sample} with Salmon"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(8192 + 1024 * attempt, 15360)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(115 * attempt, 480)
+        )
+    params:
+        libtype = "A",
+        extra = "--numBootstraps 100 --validateMappings --gcBias --seqBias"
+    log:
+        "logs/salmon/quant/{sample}.log"
+    wrapper:
+        "0.49.0/bio/salmon/quant"
+
+
+rule fastqc:
+    input:
+        lambda wildcards: samplsdict[wildcards.sample]
+    output:
+        html = "qc/fastqc/{sample}.html",
+        zip = "qc/fastqc/{sample}_fastqc.zip"
+    message:
+        "Controlling quality of {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(1024 + 1024 * attempt, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(30 * attempt, 120)
+        )
+    params:
+        ""
+    log:
+        "logs/fastqc/{sample}.log"
+    wrapper:
+        "0.49.0/bio/fastqc"
+
+
+rule multiqc:
+    input:
+        expand(
+            "salmon/quant/{sample}/quant.sf",
+            sample=design.index.tolist()
+        ),
+        expand(
+            "samtools/flagstat/{sample}.flagstat",
+            sample=design.index.tolist()
+        ),
+        expand(
+            "qc/fastqc/{sample}{ext}",
+            sample=samplsdict.keys(),
+            ext=[".html", "_fastqc.zip"]
+        )
+    output:
+        "qc/multiqc.html"
+    message:
+        "Gathering quality controls"
+    params:
+        ""
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(1024 + 1024 * attempt, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(30 * attempt, 120)
+        )
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        "0.49.0/bio/multiqc"
+
+
+rule tx_to_gene:
+    input:
+        gtf = "resources/Homo_sapiens.gtf"
+    output:
+        tsv = temp("resources/trxgene.tsv")
+    message:
+        "Building transcripts to gene correspondancy table"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(542 * attempt, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(20 * attempt, 120)
+        )
+    log:
+        "logs/tr2gene.log"
+    script:
+        "tr2gene.py"
+
+
+rule reduce_tx2gene:
+    input:
+        "resources/trxgene.tsv"
+    output:
+        "resources/tr_to_gene.tsv"
+    message:
+        "Reducing transcript to gene table to fit TXimport needs"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 2048, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/reduce_tx2gene.log"
+    shell:
+        "cut -f1,2,3 {input} > {output} 2> {log}"
+
+
+rule tximport:
+    input:
+        quant = expand(
+            "salmon/quant/{sample}/quant.sf",
+            sample=design.index.tolist()
+        ),
+        tx_to_gene = "resources/tr_to_gene.tsv"
+    output:
+        txi = temp("deseq2/txi.RDS")
+    message:
+        "Gathering transcript counts for DESeq2"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(20480 * attempt, 61040)
+        ),
+        time_min = (
+            lambda wildcards, attempt: 240 * attempt
+        )
+    conda:
+        "Renv.yaml"
+    log:
+        "logs/tximport.log"
+    script:
+        "tximport.R"
+
+
+rule deseq2_dds:
+    input:
+        tximport = "deseq2/txi.RDS",
+        design = "design.tsv"
+    output:
+        dds = temp("deseq2/dds.RDS")
+    message:
+        "Building Deseq2 dataset"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    conda:
+        "Renv.yaml"
+    params:
+        formula = '~Patient'
+    log:
+        "logs/deseq2/dds.log"
+    script:
+        "deseq_dds.R"
+
+
+rule deseq2_esf:
+    input:
+        dds = "deseq2/dds.RDS"
+    output:
+        esf = temp("deseq2/esf.RDS")
+    message:
+        "Estimating size factors"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    conda:
+        "Renv.yaml"
+    params:
+        locfunc = "median"
+    log:
+        "logs/deseq2/esf.log"
+    script:
+        "deseq_esf.R"
+
+
+rule deseq2_disp:
+    input:
+        esf = "deseq2/esf.RDS"
+    output:
+        disp = temp("deseq2/disp.RDS")
+    message:
+        "Estimating sample dispersion"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 45, 200)
+        )
+    conda:
+        "Renv.yaml"
+    log:
+        "logs/deseq2/disp.log"
+    params:
+        fittype = "parametric"
+    script:
+        "deseq_disp.R"
+
+
+rule deseq2_vst:
+    input:
+        dds = "deseq2/disp.RDS"
+    output:
+        rds = temp("deseq2/vst.RDS"),
+        tsv = "deseq2/VST.tsv"
+    message:
+        "Computing variance stabilizing transform"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    conda:
+        "Renv.yaml"
+    log:
+        "logs/deseq2/"
+    script:
+        "deseq_vst.R"
+
+
+rule pcaexplorer:
+    input:
+        dst = "deseq2/vst.RDS",
+        dds = "deseq2/dds.RDS",
+        tr2gene = "resources/tr_to_gene.tsv"
+    output:
+        annotation = "pcaExplorer/annot.RDS",
+        limmago = "pcaExplorer/limmago.RDS"
+    message:
+        "Preparing pcaExplorer"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "Renv.yaml"
+    log:
+        "logs/pcaexplorer/prepare.log"
+    params:
+        organism = "Hs"
+    script:
+        "pcaex.R"

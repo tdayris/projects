@@ -388,7 +388,7 @@ rule salmon_quant:
         )
     params:
         libtype = "A",
-        extra = "--numBootstraps 100 --validateMappings --gcBias --seqBias --geneMap {input.gtf}"
+        extra = "--numBootstraps 100 --validateMappings --gcBias --seqBias --geneMap resources/Homo_sapiens.gtf"
     log:
         "logs/salmon/quant/{sample}.log"
     wrapper:

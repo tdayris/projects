@@ -72,7 +72,16 @@ rule all:
         "deseq/tximport.RDS",
         "figures/pairwise_scatterplot.png",
         "salmon/aggregated/TPM.counts.tsv",
-        "figures/box_counts.png"
+        "figures/box_counts.png",
+        expand(
+            "figures/PCA/PCA_{factor}_PC1_PC2.png",
+            factor = [
+                "Localization", "Gender", "Early_metastasis", "Treatment",
+                "KRAS_Mutation", "RAF_Mutation", "NRAS_Mutation",
+                "TP53_Mutation", "BRAF_Mutation", "APC_Mutation",
+                "PI3KCA_Mutation", "RAS_Mutation", "FAM_Mutation"
+            ]
+        )
     message:
         "Finishing pipeline"
 

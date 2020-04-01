@@ -503,7 +503,7 @@ rule tximport:
     log:
         "logs/tximport.log"
     wrapper:
-        f"{git}/master/bio/tximport"
+        f"{swv}/bio/tximport"
 
 
 rule pandas_merge:

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 design_path = Path("design.csv")
+swv="0.50.4"
 git = "https://raw.githubusercontent.com/tdayris-perso/snakemake-wrappers"
 
 design = pandas.read_csv(
@@ -25,6 +26,7 @@ design["R2_Copy"] = [
 
 design_dict = design.to_dict()
 
+report: "general.rst"
 
 def sample_pair_w(wildcards: Any) -> Dict[str, str]:
     """
@@ -117,7 +119,7 @@ rule fastqc:
     log:
         "logs/fastqc/{sample}.log"
     wrapper:
-        "0.49.0/bio/fastqc"
+        f"{swv}/bio/fastqc"
 
 
 rule download_gtf:
@@ -142,7 +144,7 @@ rule download_gtf:
     log:
         "logs/ensembl_annotation/get_gtf.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-annotation"
+        f"{swv}/bio/reference/ensembl-annotation"
 
 
 rule download_fasta:
@@ -167,7 +169,7 @@ rule download_fasta:
     log:
         "logs/ensembl_annotation/get_genome.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-sequence"
+        f"{swv}/bio/reference/ensembl-sequence"
 
 
 rule star_index:
@@ -194,7 +196,7 @@ rule star_index:
     log:
         "logs/star/index.log"
     wrapper:
-        "0.49.0/bio/star/index"
+        f"{swv}/bio/star/index"
 
 
 rule star_mapping:
@@ -231,7 +233,7 @@ rule star_mapping:
     log:
         "logs/star/bam/{sample}.log"
     wrapper:
-        "0.49.0/bio/star/align"
+        f"{swv}/bio/star/align"
 
 
 rule star_rename:
@@ -275,7 +277,7 @@ rule samtools_index:
     params:
         ""
     wrapper:
-        "0.49.0/bio/samtools/index"
+        f"{swv}/bio/samtools/index"
 
 
 rule samtools_flagstat:
@@ -297,7 +299,7 @@ rule samtools_flagstat:
     params:
         ""
     wrapper:
-        "0.49.0/bio/samtools/flagstat"
+        f"{swv}/bio/samtools/flagstat"
 
 
 rule download_fasta_cdna:
@@ -322,7 +324,7 @@ rule download_fasta_cdna:
     log:
         "logs/ensembl_annotation/get_genome.log"
     wrapper:
-        "0.49.0/bio/reference/ensembl-sequence"
+        f"{swv}/bio/reference/ensembl-sequence"
 
 
 rule salmon_index:
@@ -346,7 +348,7 @@ rule salmon_index:
     log:
         "logs/salmon/index.log"
     wrapper:
-        "0.49.0/bio/salmon/index"
+        f"{swv}/bio/salmon/index"
 
 
 rule salmon_quant:
@@ -372,7 +374,7 @@ rule salmon_quant:
     log:
         "logs/salmon/quant/{sample}.log"
     wrapper:
-        "0.49.0/bio/salmon/quant"
+        f"{swv}/bio/salmon/quant"
 
 
 rule multiqc:
@@ -391,7 +393,11 @@ rule multiqc:
             ext=[".html", "_fastqc.zip"]
         )
     output:
-        "qc/multiqc.html"
+        report(
+            "qc/multiqc.html",
+            category="Quality Reports",
+            caption="../reports/MultiQC.report.rst"
+        )
     message:
         "Gathering quality controls"
     params:
@@ -408,7 +414,7 @@ rule multiqc:
     log:
         "logs/multiqc.log"
     wrapper:
-        "0.49.0/bio/multiqc"
+        f"{swv}/bio/multiqc"
 
 
 # liver_only_design = design[["Sample_id", "Liver", "Upstream_file", "Downstream_file"]]
@@ -443,13 +449,35 @@ rule tx2gene:
         f"{git}/tx_to_tgene/bio/tx_to_gene/gtf"
 
 
+rule tr2gene:
+    input:
+        "deseq2/Homo_sapiens.tsv"
+    output:
+        temp("deseq2/Homo_sapiens.tximport.tsv")
+    message:
+        "Reducing the tx2gene table for tximport"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 512, 1024)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 10, 20)
+        )
+    log:
+        "logs/tx2gene.log"
+    shell:
+        "cut -f1,3 {input} > {output} 2> {log}"
+
+
 rule tximport:
     input:
         quant = expand(
             "salmon/quant/{sample}/quant.sf",
             sample=design.index.tolist()
         ),
-        tx_to_gene = "deseq2/Homo_sapiens.tsv"
+        tx_to_gene = "deseq2/Homo_sapiens.tximport.tsv"
     output:
         txi = "deseq/tximport.RDS"
     message:
@@ -463,7 +491,65 @@ rule tximport:
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
+    params:
+        extra = "type = 'salmon', txOut = TRUE"
     log:
         "logs/tximport.log"
     wrapper:
         f"{git}/master/bio/tximport"
+
+
+rule pandas_merge:
+    input:
+        quant = expand(
+            "salmon/quant/{sample}/quant.genes.sf",
+            sample=design.index.tolist()
+        ),
+        tx2gene = "deseq2/Homo_sapiens.tsv"
+    output:
+        tsv = report(
+            "salmon/aggregated/TPM.counts.tsv",
+            caption="../report/aggregated.TPM.counts.rst",
+            category="Counts"
+        )
+    message:
+        "Aggregating salmon counts"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/pandas_merge.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/pandas/salmon"
+
+
+rule box_count:
+    input:
+        "salmon.aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/box_counts.png",
+            caption="../report/box.counts.rst",
+            category="Figures"
+        )
+    message:
+        "Plotting comparative boxplots of each sample's counts"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/box_count.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/box_counts"

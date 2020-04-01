@@ -68,8 +68,11 @@ localrules: download_fasta, download_fasta_cdna, download_gtf, copy_fq
 
 rule all:
     input:
-        # "qc/multiqc.html"
-        "deseq/tximport.RDS"
+        "qc/multiqc.html"
+        "deseq/tximport.RDS",
+        "figures/pairwise_scatterplot.png",
+        "salmon/aggregated/TPM.counts.tsv",
+        "figures/box_counts.png"
     message:
         "Finishing pipeline"
 
@@ -387,10 +390,10 @@ rule multiqc:
             "salmon/quant/{sample}/quant.sf",
             sample=design.index.tolist()
         ),
-        expand(
-            "samtools/flagstat/{sample}.flagstat",
-            sample=design.index.tolist()
-        ),
+        # expand(
+        #     "samtools/flagstat/{sample}.flagstat",
+        #     sample=design.index.tolist()
+        # ),
         expand(
             "qc/fastqc/{sample}{ext}",
             sample=samplsdict.keys(),

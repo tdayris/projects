@@ -1,5 +1,7 @@
 This is the results of DESeq2, it contains the differential analysis results. With this file, you will be able to see either differentially expressed genes, and the others: this table contains both of them!
 
+This differential analysis has been done with the following statistical formulae: `{{snakemake.wildcards.formulae}}`
+
 It contains the following columns:
 
 +----------------+-----------------------------------------------+

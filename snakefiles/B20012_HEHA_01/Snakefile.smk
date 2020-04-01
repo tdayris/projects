@@ -540,7 +540,7 @@ rule pandas_merge:
 
 rule box_count:
     input:
-        "salmon.aggregated/TPM.counts.tsv"
+        "salmon/aggregated/TPM.counts.tsv"
     output:
         png = report(
             "figures/box_counts.png",
@@ -588,3 +588,37 @@ rule pairwise_scatterplot:
         "logs/pairwise_scatterplot.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pairwise-scatterplot"
+
+
+rule pca_plots:
+    input:
+        counts = "salmon/aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/PCA/PCA_{factor}_PC1_PC2.png",
+            caption="../reports/pca.rst",
+            category="Figures"
+        )
+    message:
+        "Plotting PCA for factor {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        axes = [1, 2]
+        conditions = {
+            k: v for k, v in zip(
+                design.index.tolist(),
+                design[factor].tolist()
+            )
+        }
+    log:
+        "logs/pca_plots/{factor}.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/pca"

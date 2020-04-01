@@ -1,7 +1,7 @@
 Material and Methods
 ====================
 
-The raw reads' quality were assessed with FastQC, and let us conclude no further trimming was needed. The quantification process was performed on Ensembl GRCh38.86 cdna, with Salmon. While a perfect hash was used while indexing, and duplicate targets were kept. The quantification process used 100 bootstrap rounds, mapping validation, and both sequence bias and GC bias taken into account. Count aggregation was performed by tximport, with default salmon parameters, inferential replicates importation and transcript to gene counts aggregation. After a round of PCA analysis with pcaExplorer, the differential analysis was performed with DESeq2, using local fit regression.
+The raw reads' quality were assessed with FastQC, and let us conclude no further trimming was needed. The quantification process was performed on Ensembl GRCh38.86 cdna, with Salmon. While a perfect hash was used while indexing, and duplicate targets were kept. The quantification process used 100 bootstrap rounds, mapping validation, and both sequence bias and GC bias taken into account. Count aggregation was performed by tximport, with default salmon parameters, inferential replicates importation and transcript to gene counts aggregation. After a round of PCA analysis with pcaExplorer, the differential analysis was performed with DESeq2, using local fit regression. Statistical formulas will be displayed alongside with the results.
 
 The raw reads were also mapped on Ensembl GRCh38 with STAR. Encode specific parameters were used, and basic two-pass mapping. Quality controls were performed on these BAM files by Samtools.
 

@@ -361,9 +361,11 @@ rule salmon_index:
 rule salmon_quant:
     input:
         unpack(salmon_sample_pair_w),
-        index = "salmon/index/Homo_sapiens"
+        index = "salmon/index/Homo_sapiens",
+        gtf = "resources/Homo_sapiens.gtf"
     output:
-        quant = "salmon/quant/{sample}/quant.sf"
+        quant = "salmon/quant/{sample}/quant.sf",
+        genes = "salmon/quant/{sample}/quant.genes.sf"
     message:
         "Quantifying {wildcards.sample} with Salmon"
     threads:
@@ -377,7 +379,7 @@ rule salmon_quant:
         )
     params:
         libtype = "A",
-        extra = "--numBootstraps 100 --validateMappings --gcBias --seqBias"
+        extra = "--numBootstraps 100 --validateMappings --gcBias --seqBias --genemap {input.gtf}"
     log:
         "logs/salmon/quant/{sample}.log"
     wrapper:

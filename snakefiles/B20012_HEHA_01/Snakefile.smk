@@ -620,7 +620,7 @@ rule pca_plots:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     params:
-        axes = [1, 2]
+        axes = [1, 2],
         conditions = {
             k: v for k, v in zip(
                 design.index.tolist(),

@@ -570,7 +570,7 @@ rule box_count:
     log:
         "logs/box_count.log"
     wrapper:
-        f"{git}/pandas-merge/bio/seaborn/box_counts"
+        f"{git}/pandas-merge/bio/seaborn/box-counts"
 
 
 rule pairwise_scatterplot:

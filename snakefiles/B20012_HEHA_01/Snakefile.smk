@@ -549,7 +549,7 @@ rule pandas_merge:
 
 rule box_count:
     input:
-        "salmon/aggregated/TPM.counts.tsv"
+        counts = "salmon/aggregated/TPM.counts.tsv"
     output:
         png = report(
             "figures/box_counts.png",
@@ -588,7 +588,7 @@ rule pairwise_scatterplot:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: min(attempt * 2048, 10240)
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)

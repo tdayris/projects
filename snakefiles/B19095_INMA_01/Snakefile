@@ -808,7 +808,7 @@ rule pandas_merge:
             "salmon/quant/{sample}/quant.sf",
             sample=design.index.tolist()
         ),
-        tx2gene = "deseq2/Homo_sapiens.tsv"
+        tx2gene = "resources/trxgene.tsv"
     output:
         tsv = report(
             "salmon/aggregated/TPM.counts.tsv",

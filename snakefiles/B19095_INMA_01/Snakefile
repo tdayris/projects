@@ -763,10 +763,10 @@ rule deseq2_vst:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 8192, 10240)
+            lambda wildcards, attempt: attempt * 8192
         ),
         time_min = (
-            lambda wildcards, attempt: min(attempt * 40, 200)
+            lambda wildcards, attempt: attempt * 40
         )
     log:
         "logs/deseq2/"

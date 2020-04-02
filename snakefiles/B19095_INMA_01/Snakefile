@@ -623,7 +623,7 @@ rule tx_to_gene:
     log:
         "logs/tr2gene.log"
     wrapper:
-        f"{git}/pandas-merge/bio/pandas/salmon"
+        f"{git}/pandas-merge/bio/tx_to_gene/gtf"
 
 
 rule reduce_tx2gene:

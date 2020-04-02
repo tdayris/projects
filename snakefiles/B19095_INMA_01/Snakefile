@@ -65,8 +65,8 @@ rule all:
         dst = "deseq2/vst.RDS",
         dds = "deseq2/dds.RDS",
         tr2gene = "resources/tr_to_gene.tsv",
-        annotation = "pcaExplorer/annot.RDS",
-        limmago = "pcaExplorer/limmago.RDS",
+        # annotation = "pcaExplorer/annot.RDS",
+        # limmago = "pcaExplorer/limmago.RDS",
         pairwise_scatterplot = "figures/pairwise_scatterplot.png",
         count_table = "salmon/aggregated/TPM.counts.tsv",
         boxplot = "figures/box_counts.png"

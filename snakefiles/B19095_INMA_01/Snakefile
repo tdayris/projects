@@ -753,7 +753,7 @@ rule deseq2_vst:
     output:
         rds = temp("deseq2/vst.RDS"),
         tsv = report(
-            "deseq2/VST.tsv"
+            "deseq2/VST.tsv",
             caption="../reports/deseq2.complete.table.rst",
             category="Differential Expression"
         )

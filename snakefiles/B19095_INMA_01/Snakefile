@@ -469,7 +469,7 @@ rule download_fasta_cdna:
 
 rule correct_cdna_patch:
     input:
-        "resources/Homo_sapiens_cdna_patch.fasta"
+        ancient("resources/Homo_sapiens_cdna_patch.fasta")
     output:
         "resources/Homo_sapiens_cdna.fasta"
     message:
@@ -491,7 +491,7 @@ rule correct_cdna_patch:
 
 rule salmon_index:
     input:
-        "resources/Homo_sapiens_cdna.fasta"
+        ancient("resources/Homo_sapiens_cdna.fasta")
     output:
         directory("salmon/index/Homo_sapiens")
     message:
@@ -606,7 +606,7 @@ rule multiqc:
 
 rule tx_to_gene:
     input:
-        gtf = "resources/Homo_sapiens.gtf"
+        gtf = ancient("resources/Homo_sapiens.gtf")
     output:
         tsv = temp("resources/trxgene.tsv")
     message:
@@ -676,7 +676,7 @@ rule tximport:
 
 rule deseq2_dds:
     input:
-        tximport = "deseq2/txi.RDS",
+        tximport = ancient("deseq2/txi.RDS"),
         design = "design.tsv"
     output:
         dds = temp("deseq2/dds.RDS")

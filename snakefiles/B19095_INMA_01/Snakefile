@@ -720,7 +720,7 @@ rule deseq2_esf:
     log:
         "logs/deseq2/esf.log"
     wrapper:
-        f"{git}/deseq2-estimateSizeFactors/bio/deseq2/estimateSizeFactors
+        f"{git}/deseq2-estimateSizeFactors/bio/deseq2/estimateSizeFactors"
 
 
 rule deseq2_disp:

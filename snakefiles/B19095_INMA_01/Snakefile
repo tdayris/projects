@@ -66,7 +66,10 @@ rule all:
         dds = "deseq2/dds.RDS",
         tr2gene = "resources/tr_to_gene.tsv",
         annotation = "pcaExplorer/annot.RDS",
-        limmago = "pcaExplorer/limmago.RDS"
+        limmago = "pcaExplorer/limmago.RDS",
+        pairwise_scatterplot = "figures/pairwise_scatterplot.png",
+        count_table = "salmon/aggregated/TPM.counts.tsv",
+        boxplot = "figures/box_counts.png"
     message:
         "Finishing pipeline"
 
@@ -577,7 +580,11 @@ rule multiqc:
             ext=[".html", "_fastqc.zip"]
         )
     output:
-        "qc/multiqc.html"
+        report(
+            "qc/multiqc.html",
+            caption="../reports/MultiQC.report.rst",
+            category="Quality Controls"
+        )
     message:
         "Gathering quality controls"
     params:
@@ -804,3 +811,84 @@ rule pcaexplorer:
         organism = "Hs"
     script:
         "pcaex.R"
+
+rule pandas_merge:
+    input:
+        quant = expand(
+            "salmon/quant/{sample}/quant.sf",
+            sample=design.index.tolist()
+        ),
+        tx2gene = "deseq2/Homo_sapiens.tsv"
+    output:
+        tsv = report(
+            "salmon/aggregated/TPM.counts.tsv",
+            caption="../report/aggregated.TPM.counts.rst",
+            category="Counts"
+        )
+    message:
+        "Aggregating salmon counts"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/pandas_merge.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/pandas/salmon"
+
+
+rule box_count:
+    input:
+        "salmon/aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/box_counts.png",
+            caption="../report/box.counts.rst",
+            category="Figures"
+        )
+    message:
+        "Plotting comparative boxplots of each sample's counts"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/box_count.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/box-counts"
+
+
+rule pairwise_scatterplot:
+    input:
+        counts = "salmon/aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/pairwise_scatterplot.png",
+            caption="../reports/pairwise_scatterplot.rst",
+            category="Figures"
+        )
+    message:
+        "Drawing pairwise scatterplot"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/pairwise_scatterplot.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/pairwise-scatterplot"

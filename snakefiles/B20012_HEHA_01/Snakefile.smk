@@ -371,7 +371,7 @@ rule salmon_quant:
     input:
         unpack(salmon_sample_pair_w),
         index = "salmon/index/Homo_sapiens",
-        gtf = "resources/Homo_sapiens.gtf"
+        gtf = ancient("resources/Homo_sapiens.gtf")
     output:
         quant = "salmon/quant/{sample}/quant.sf",
         genes = "salmon/quant/{sample}/quant.genes.sf"
@@ -434,17 +434,6 @@ rule multiqc:
     wrapper:
         f"{swv}/bio/multiqc"
 
-
-# liver_only_design = design[["Sample_id", "Liver", "Upstream_file", "Downstream_file"]]
-# peritoneum_only_design = design[["Sample_id", "Peritoneum", "Upstream_file", "Downstream_file"]]
-# design["Mutation_Profile"] = [
-#     f"{KRAS[0]}:{NRAS[0]}:{RAF[0]}:{TP53[0]}:{BRAF[0]}::{APC[0]}:{PI3KCA[0]}:{RAS[0]}:{FAM[0]}"
-#     for KRAS, NRAS, RAF, TP53, BRAF, APC, PI3KCA, RAS, FAM in zip(
-#         design.KRAS_Mutation, design.NRAS_Mutation, design.RAF_Mutation
-#     )
-# ]
-# mutation_design = design[["Sample_id", "Mutation_Profile", "Upstream_file", "Downstream_file"]]
-
 rule tx2gene:
     input:
         gtf = "resources/Homo_sapiens.gtf"
@@ -456,10 +445,10 @@ rule tx2gene:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 512, 1024)
+            lambda wildcards, attempt: attempt * 2048
         ),
         time_min = (
-            lambda wildcards, attempt: min(attempt * 10, 20)
+            lambda wildcards, attempt: attempt * 119
         )
     log:
         "logs/tx2gene.log"

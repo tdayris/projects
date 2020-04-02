@@ -771,7 +771,7 @@ rule deseq2_vst:
     log:
         "logs/deseq2/"
     wrapper:
-        f"{git}deseq2-vst/bio/deseq2/vst"
+        f"{git}/deseq2-vst/bio/deseq2/vst"
 
 
 # rule pcaexplorer:

@@ -504,10 +504,10 @@ rule tximport:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: attempt * 20480
         ),
         time_min = (
-            lambda wildcards, attempt: min(attempt * 20, 200)
+            lambda wildcards, attempt: attempt * 119
         )
     params:
         extra = "type = 'salmon', txOut = TRUE"
@@ -541,6 +541,10 @@ rule pandas_merge:
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
+    params:
+        drop_null = True,
+        drop_na = True,
+        gencode = True
     log:
         "logs/pandas_merge.log"
     wrapper:

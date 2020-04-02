@@ -622,8 +622,8 @@ rule tx_to_gene:
         )
     log:
         "logs/tr2gene.log"
-    script:
-        "tr2gene.py"
+    wrapper:
+        f"{git}/pandas-merge/bio/pandas/salmon"
 
 
 rule reduce_tx2gene:
@@ -645,7 +645,7 @@ rule reduce_tx2gene:
     log:
         "logs/reduce_tx2gene.log"
     shell:
-        "cut -f1,2,3 {input} > {output} 2> {log}"
+        "cut -f2,3 {input} > {output} 2> {log}"
 
 
 rule tximport:
@@ -668,12 +668,10 @@ rule tximport:
         time_min = (
             lambda wildcards, attempt: 240 * attempt
         )
-    conda:
-        "Renv.yaml"
     log:
         "logs/tximport.log"
-    script:
-        "tximport.R"
+    wrapper:
+        f"{swv}/bio/tximport"
 
 
 rule deseq2_dds:
@@ -693,14 +691,12 @@ rule deseq2_dds:
         time_min = (
             lambda wildcards, attempt: min(attempt * 40, 200)
         )
-    conda:
-        "Renv.yaml"
     params:
         formula = '~Patient'
     log:
         "logs/deseq2/dds.log"
-    script:
-        "deseq_dds.R"
+    wrapper:
+        f"{git}/deseq2_dataset/bio/deseq2/DESeqDataSetFromTximport"
 
 
 rule deseq2_esf:
@@ -719,14 +715,12 @@ rule deseq2_esf:
         time_min = (
             lambda wildcards, attempt: min(attempt * 40, 200)
         )
-    conda:
-        "Renv.yaml"
     params:
         locfunc = "median"
     log:
         "logs/deseq2/esf.log"
-    script:
-        "deseq_esf.R"
+    wrapper:
+        f"{git}/deseq2-estimateSizeFactors/bio/deseq2/estimateSizeFactors
 
 
 rule deseq2_disp:
@@ -745,14 +739,12 @@ rule deseq2_disp:
         time_min = (
             lambda wildcards, attempt: min(attempt * 45, 200)
         )
-    conda:
-        "Renv.yaml"
     log:
         "logs/deseq2/disp.log"
     params:
         fittype = "parametric"
-    script:
-        "deseq_disp.R"
+    wrapper:
+        f"{git}/deseq2-disp.R/bio/deseq2/estimateDispersions"
 
 
 rule deseq2_vst:
@@ -776,41 +768,39 @@ rule deseq2_vst:
         time_min = (
             lambda wildcards, attempt: min(attempt * 40, 200)
         )
-    conda:
-        "Renv.yaml"
     log:
         "logs/deseq2/"
-    script:
-        "deseq_vst.R"
+    wrapper:
+        f"{git}deseq2-vst/bio/deseq2/vst"
 
 
-rule pcaexplorer:
-    input:
-        dst = "deseq2/vst.RDS",
-        dds = "deseq2/dds.RDS",
-        tr2gene = "resources/tr_to_gene.tsv"
-    output:
-        annotation = "pcaExplorer/annot.RDS",
-        limmago = "pcaExplorer/limmago.RDS"
-    message:
-        "Preparing pcaExplorer"
-    threads:
-        1
-    resources:
-        mem_mb = (
-            lambda wildcards, attempt: min(attempt * 8192, 10240)
-        ),
-        time_min = (
-            lambda wildcards, attempt: min(attempt * 20, 200)
-        )
-    conda:
-        "Renv.yaml"
-    log:
-        "logs/pcaexplorer/prepare.log"
-    params:
-        organism = "Hs"
-    script:
-        "pcaex.R"
+# rule pcaexplorer:
+#     input:
+#         dst = "deseq2/vst.RDS",
+#         dds = "deseq2/dds.RDS",
+#         tr2gene = "resources/tr_to_gene.tsv"
+#     output:
+#         annotation = "pcaExplorer/annot.RDS",
+#         limmago = "pcaExplorer/limmago.RDS"
+#     message:
+#         "Preparing pcaExplorer"
+#     threads:
+#         1
+#     resources:
+#         mem_mb = (
+#             lambda wildcards, attempt: min(attempt * 8192, 10240)
+#         ),
+#         time_min = (
+#             lambda wildcards, attempt: min(attempt * 20, 200)
+#         )
+#     conda:
+#         "Renv.yaml"
+#     log:
+#         "logs/pcaexplorer/prepare.log"
+#     params:
+#         organism = "Hs"
+#     script:
+#         "pcaex.R"
 
 rule pandas_merge:
     input:
@@ -883,7 +873,7 @@ rule pairwise_scatterplot:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: min(attempt * 2048, 10240)
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)

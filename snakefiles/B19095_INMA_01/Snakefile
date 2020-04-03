@@ -833,7 +833,7 @@ rule pandas_merge:
 
 rule box_count:
     input:
-        "salmon/aggregated/TPM.counts.tsv"
+        counts = "salmon/aggregated/TPM.counts.tsv"
     output:
         png = report(
             "figures/box_counts.png",

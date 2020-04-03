@@ -338,7 +338,7 @@ rule pairwise_scatterplot:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: min(attempt * 8192, 16384)
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)

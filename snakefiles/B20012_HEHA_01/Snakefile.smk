@@ -619,7 +619,10 @@ rule pca_plots:
                 design.index.tolist(),
                 design[wildcards.factor].tolist()
             )
-        }
+        },
+        prefix = (
+            lambda wildcards: f"PCA_{wildcards.factor}"
+        )
     log:
         "logs/pca_plots/{factor}.log"
     wrapper:

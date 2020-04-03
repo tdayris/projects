@@ -607,10 +607,10 @@ rule pca_plots:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 2048, 10240)
+            lambda wildcards, attempt: attempt * 2048
         ),
         time_min = (
-            lambda wildcards, attempt: min(attempt * 40, 200)
+            lambda wildcards, attempt: attempt * 40
         )
     params:
         axes = [1, 2],

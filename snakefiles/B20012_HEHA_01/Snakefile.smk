@@ -516,7 +516,7 @@ rule pandas_merge:
     output:
         tsv = report(
             "salmon/aggregated/TPM.counts.tsv",
-            caption="../report/aggregated.TPM.counts.rst",
+            caption="../../reports/aggregated.TPM.counts.rst",
             category="Counts"
         )
     message:
@@ -546,7 +546,7 @@ rule box_count:
     output:
         png = report(
             "figures/box_counts.png",
-            caption="../report/box.counts.rst",
+            caption="../../reports/box.counts.rst",
             category="Figures"
         )
     message:

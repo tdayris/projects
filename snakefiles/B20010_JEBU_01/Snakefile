@@ -303,7 +303,7 @@ rule box_count:
     output:
         png = report(
             "figures/box_counts.png",
-            caption="../report/box.counts.rst",
+            caption="../../reports/box.counts.rst",
             category="Figures"
         )
     message:

@@ -8,11 +8,17 @@ It contains the following columns:
 | Column         | Content                                       |
 +================+===============================================+
 |                | The gene identifier within Ensembl database   |
++----------------+-----------------------------------------------+
 | baseMean       | The mean count for this gene                  |
++----------------+-----------------------------------------------+
 | log2FoldChange | The log2(MeanExpression_C1/MeanExpression_C2) |
++----------------+-----------------------------------------------+
 | lfcSE          | The shrinked value of the log2(FC)            |
++----------------+-----------------------------------------------+
 | stat           | The stat value used for the linear model      |
++----------------+-----------------------------------------------+
 | pvalue         | The raw P-value (should not be considered)    |
++----------------+-----------------------------------------------+
 | padj           | The Adjusted P-Value                          |
 +----------------+-----------------------------------------------+
 

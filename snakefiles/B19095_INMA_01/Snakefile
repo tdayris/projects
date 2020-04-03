@@ -676,7 +676,7 @@ rule tximport:
 rule deseq2_dds:
     input:
         tximport = ancient("deseq2/txi.RDS"),
-        design = "design.tsv"
+        coldata = "design.tsv"
     output:
         dds = temp("deseq2/dds.RDS")
     message:
@@ -691,7 +691,7 @@ rule deseq2_dds:
             lambda wildcards, attempt: min(attempt * 40, 200)
         )
     params:
-        formula = '~Patient'
+        design = '~Patient'
     log:
         "logs/deseq2/dds.log"
     wrapper:
@@ -702,7 +702,7 @@ rule deseq2_esf:
     input:
         dds = "deseq2/dds.RDS"
     output:
-        esf = temp("deseq2/esf.RDS")
+        dds = temp("deseq2/esf.RDS")
     message:
         "Estimating size factors"
     threads:
@@ -724,7 +724,7 @@ rule deseq2_esf:
 
 rule deseq2_disp:
     input:
-        esf = "deseq2/esf.RDS"
+        dds = "deseq2/esf.RDS"
     output:
         disp = temp("deseq2/disp.RDS")
     message:

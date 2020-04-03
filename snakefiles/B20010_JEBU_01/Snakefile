@@ -90,7 +90,7 @@ rule multiqc:
     output:
         report(
             "multiqc/report.html",
-            caption="../reports/MultiQC.report.rst",
+            caption="../../reports/MultiQC.report.rst",
             category="Quality Controls"
         )
     message:
@@ -329,7 +329,7 @@ rule pairwise_scatterplot:
     output:
         png = report(
             "figures/pairwise_scatterplot.png",
-            caption="../reports/pairwise_scatterplot.rst",
+            caption="../../reports/pairwise_scatterplot.rst",
             category="Figures"
         )
     message:

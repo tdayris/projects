@@ -582,7 +582,7 @@ rule multiqc:
     output:
         report(
             "qc/multiqc.html",
-            caption="../reports/MultiQC.report.rst",
+            caption="../../reports/MultiQC.report.rst",
             category="Quality Controls"
         )
     message:
@@ -753,7 +753,7 @@ rule deseq2_vst:
         rds = temp("deseq2/vst.RDS"),
         tsv = report(
             "deseq2/VST.tsv",
-            caption="../reports/deseq2.complete.table.rst",
+            caption="../../reports/deseq2.complete.table.rst",
             category="Differential Expression"
         )
     message:
@@ -863,7 +863,7 @@ rule pairwise_scatterplot:
     output:
         png = report(
             "figures/pairwise_scatterplot.png",
-            caption="../reports/pairwise_scatterplot.rst",
+            caption="../../reports/pairwise_scatterplot.rst",
             category="Figures"
         )
     message:

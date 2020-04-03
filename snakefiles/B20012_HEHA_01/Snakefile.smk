@@ -414,7 +414,7 @@ rule multiqc:
         report(
             "qc/multiqc.html",
             category="Quality Reports",
-            caption="../reports/MultiQC.report.rst"
+            caption="../../reports/MultiQC.report.rst"
         )
     message:
         "Gathering quality controls"
@@ -572,7 +572,7 @@ rule pairwise_scatterplot:
     output:
         png = report(
             "figures/pairwise_scatterplot.png",
-            caption="../reports/pairwise_scatterplot.rst",
+            caption="../../reports/pairwise_scatterplot.rst",
             category="Figures"
         )
     message:
@@ -598,7 +598,7 @@ rule pca_plots:
     output:
         png = report(
             "figures/PCA/PCA_{factor}_PC1_PC2.png",
-            caption="../reports/pca.rst",
+            caption="../../reports/pca.rst",
             category="Figures"
         )
     message:

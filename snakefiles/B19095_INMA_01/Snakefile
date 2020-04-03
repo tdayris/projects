@@ -52,24 +52,25 @@ localrules: download_gtf, download_fasta, download_fasta_cdna
 
 rule all:
     input:
-        mixcr_tsv = expand(
-            "mixcr/report/{sample}.tsv",
-            sample=design.index.tolist()
-        ),
-        mixcr_bin = expand(
-            "mixcr/assemble/{sample}.vdjca",
-            sample=design.index.tolist()
-        ),
+        # mixcr_tsv = expand(
+        #     "mixcr/report/{sample}.tsv",
+        #     sample=design.index.tolist()
+        # ),
+        # mixcr_bin = expand(
+        #     "mixcr/assemble/{sample}.vdjca",
+        #     sample=design.index.tolist()
+        # ),
         multiqc = "qc/multiqc.html",
-        cdna = "resources/Homo_sapiens_cdna.fasta",
-        dst = "deseq2/vst.RDS",
-        dds = "deseq2/dds.RDS",
         tr2gene = "resources/tr_to_gene.tsv",
         # annotation = "pcaExplorer/annot.RDS",
         # limmago = "pcaExplorer/limmago.RDS",
-        pairwise_scatterplot = "figures/pairwise_scatterplot.png",
+        # pairwise_scatterplot = "figures/pairwise_scatterplot.png",
         count_table = "salmon/aggregated/TPM.counts.tsv",
-        boxplot = "figures/box_counts.png"
+        # boxplot = "figures/box_counts.png"
+        pca = expand(
+            "figures/PCA/PCA_{factor}_PC1_PC2.png",
+            factor = ["Patient", "S", "Year", "Treatment"]
+        )
     message:
         "Finishing pipeline"
 
@@ -94,7 +95,7 @@ rule mixcr_align:
             lambda wildcards, attempt: min(90 * attempt, 380)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/align/{sample}.logs"
     params:
@@ -126,7 +127,7 @@ rule mixcr_assembly_1:
             lambda wildcards, attempt: min(75 * attempt, 380)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/assembly_1/{sample}.logs"
     params:
@@ -156,7 +157,7 @@ rule mixcr_assembly_2:
             lambda wildcards, attempt: min(75 * attempt, 380)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/assembly_1/{sample}.logs"
     params:
@@ -186,7 +187,7 @@ rule mixcr_extend:
             lambda wildcards, attempt: min(45 * attempt, 380)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/extend/{sample}.logs"
     params:
@@ -217,7 +218,7 @@ rule mixcr_assemble:
             lambda wildcards, attempt: min(45 * attempt, 380)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/assemble/{sample}.logs"
     params:
@@ -249,7 +250,7 @@ rule mixcr_export:
             lambda wildcards, attempt: min(15 * attempt, 120)
         )
     conda:
-        "mixcr.yaml"
+        "../../mixcr.yaml"
     log:
         "logs/mixcr/export/{sample}.logs"
     params:
@@ -881,3 +882,37 @@ rule pairwise_scatterplot:
         "logs/pairwise_scatterplot.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pairwise-scatterplot"
+
+
+rule pca_plots:
+    input:
+        counts = "salmon/aggregated/TPM.counts.tsv"
+    output:
+        png = report(
+            "figures/PCA/PCA_{factor}_PC1_PC2.png",
+            caption="../../reports/pca.rst",
+            category="Figures"
+        )
+    message:
+        "Plotting PCA for factor {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 2048, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    params:
+        axes = [1, 2],
+        conditions = lambda wildcards : {
+            k: v for k, v in zip(
+                design.index.tolist(),
+                design[wildcards.factor].tolist()
+            )
+        }
+    log:
+        "logs/pca_plots/{factor}.log"
+    wrapper:
+        f"{git}/pandas-merge/bio/seaborn/pca"

@@ -262,6 +262,8 @@ rule tx2gene:
         time_min = (
             lambda wildcards, attempt: min(attempt * 10, 20)
         )
+    params:
+        gencode = True
     log:
         "logs/tx2gene.log"
     wrapper:

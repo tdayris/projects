@@ -454,6 +454,8 @@ rule tx2gene:
         time_min = (
             lambda wildcards, attempt: attempt * 119
         )
+    params:
+        gencode = True
     log:
         "logs/tx2gene.log"
     wrapper:

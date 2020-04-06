@@ -731,7 +731,7 @@ rule deseq2_esf:
     params:
         locfunc = "median"
     log:
-        "logs/deseq2/esf.log"
+        "logs/deseq2/esf/{factor}.log"
     wrapper:
         f"{git}/deseq2-estimateSizeFactors/bio/deseq2/estimateSizeFactors"
 

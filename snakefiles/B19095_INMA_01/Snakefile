@@ -691,7 +691,7 @@ rule deseq2_dds:
     output:
         dds = temp("deseq2/RDS/DESeq2_dds_{factor}.RDS")
     message:
-        "Building Deseq2 dataset"
+        "Building Deseq2 dataset for {wildcards.factor}"
     threads:
         1
     resources:
@@ -743,7 +743,7 @@ rule deseq2_disp:
     output:
         disp = temp("deseq2/RDS/DESeq2_DispEst_{factor}.RDS")
     message:
-        "Estimating sample dispersion for {factor}"
+        "Estimating sample dispersion for {wildcards.factor}"
     threads:
         1
     resources:

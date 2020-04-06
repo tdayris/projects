@@ -17,6 +17,7 @@ design = pandas.read_csv(
 )
 
 design_dict = design.to_dict()
+ruleorder: pca_plots > pca_plots_named
 
 
 def sample_pair_w(wildcards: Any) -> Dict[str, str]:
@@ -924,13 +925,15 @@ rule pca_plots:
         prefix = (
             lambda wildcards: f"figures/PCA/PCA_{wildcards.factor}"
         )
+    wildcard_constraints:
+        factor = "|".join(["Patient", "S", "Year", "Treatment"])
     log:
         "logs/pca_plots/{factor}.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pca"
 
 
-rule pca_plots_namd:
+rule pca_plots_named:
     input:
         counts = "salmon/aggregated/TPM.counts.tsv"
     output:

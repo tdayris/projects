@@ -632,10 +632,11 @@ rule pca_plots:
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pca"
 
+
 rule deseq2_dds:
     input:
         tximport = ancient("deseq/tximport.RDS"),
-        coldata = "design.tsv"
+        coldata = design_path
     output:
         dds = temp("deseq2/RDS/DESeq2_dds_{factor}.RDS")
     message:

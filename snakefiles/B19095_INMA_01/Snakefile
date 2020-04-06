@@ -673,7 +673,7 @@ rule tximport:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(20480 * attempt, 61040)
+            lambda wildcards, attempt: 20480 * attempt
         ),
         time_min = (
             lambda wildcards, attempt: 240 * attempt

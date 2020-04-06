@@ -24,6 +24,6 @@ It contains the following columns:
 
 The values are alphabetically sorted according to the name of the gene.
 
-This file is a TSV file (Tab Separated Values). It can be opened by all tabular editor such as Excel, LibreOffice Calc, etc. Thy can do it, even if your computer tell you otherwise. Open your favorite tabular editor, then click and drag the TSV file into the opened tabular editor.
+This is a directory that contains one or multiple TSV files (Tab Separated Values). A TSV file can be opened by all tabular editor such as Excel, LibreOffice Calc, etc. They can do it, even if your computer tell you otherwise. Open your favorite tabular editor, then click and drag the TSV file into the opened tabular editor.
 
 This file is quite big. You may try to open it, but it shall slow down your computer. If you want to see expression values between a set of genes, please ask you bioinformatician : we can draw box plots of any genes you're interested in, for any number of genes you might be interested in (1, 100, 1000, all).

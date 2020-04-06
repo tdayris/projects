@@ -75,6 +75,10 @@ rule all:
             "figures/PCA/PCA_{factor}_{names}_PC1_PC2.png",
             factor = ["Patient", "S", "Year", "Treatment"],
             names = design.Sample_id
+        ),
+        deseq2 = expand(
+            "deseq2/TSV/DESeq2_{factor}.tsv",
+            factor = ["Patient"]
         )
     message:
         "Finishing pipeline"

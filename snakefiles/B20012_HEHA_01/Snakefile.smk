@@ -83,7 +83,7 @@ rule all:
             ]
         ),
         deseq2_table = expand(
-            "deseq2/TSV/DESeq2_{factor}.tsv",
+            "deseq2/TSV/DESeq2_{factor}",
             factor=["Liver", "Peritoneum"]
         )
     message:
@@ -740,7 +740,7 @@ rule deseq2_waldtest:
     output:
         rds = "deseq2/RDS/DESeq2_WaldTest_{factor}.RDS",
         tsv = report(
-            "deseq2/TSV/DESeq2_{factor}.tsv",
+            directory("deseq2/TSV/DESeq2_{factor}"),
             caption="../../reports/deseq2.complete.table.rst",
             category="Differential Expression"
         )

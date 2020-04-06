@@ -78,7 +78,7 @@ rule all:
         #     names = design.index.tolist()
         # ),
         deseq2 = expand(
-            "deseq2/TSV/DESeq2_{factor}.tsv",
+            "deseq2/TSV/DESeq2_{factor}",
             factor = ["Patient"]
         )
     message:

@@ -998,4 +998,4 @@ rule deseq2_waldtest:
     log:
         "logs/deseq2_waldtest/{factor}.log"
     wrapper:
-        f"{swv}/deseq2-waldtest/bio/deseq2/nbinomWaldTest"
+        f"{git}/deseq2-waldtest/bio/deseq2/nbinomWaldTest"

@@ -196,7 +196,7 @@ rule salmon_index:
     message:
         "Indexing homo_sapiens CDNA with Salmon"
     threads:
-        10
+        20
     resources:
         mem_mb = (
             lambda wildcards, attempt: min(8192 + 1024 * attempt, 15360)
@@ -229,7 +229,7 @@ rule salmon_quant:
     message:
         "Quantifying {wildcards.sample} with Salmon"
     threads:
-        10
+        20
     resources:
         mem_mb = (
             lambda wildcards, attempt: min(8192 + 1024 * attempt, 15360)

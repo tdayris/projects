@@ -74,7 +74,7 @@ rule all:
         pca_named = expand(
             "figures/PCA/PCA_{factor}_{names}_PC1_PC2.png",
             factor = ["Patient", "S", "Year", "Treatment"],
-            names = design.Sample_id
+            names = design.index.tolist()
         ),
         deseq2 = expand(
             "deseq2/TSV/DESeq2_{factor}.tsv",
@@ -964,7 +964,7 @@ rule pca_plots_namd:
         )
     wildcard_constraints:
         factor = "|".join(["Patient", "S", "Year", "Treatment"]),
-        names = "|".join(design.Sample_id.tolist())
+        names = "|".join(design.index.tolist())
     log:
         "logs/pca_plots/{factor}.log"
     wrapper:

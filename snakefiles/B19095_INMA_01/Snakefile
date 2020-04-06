@@ -966,7 +966,7 @@ rule pca_plots_namd:
         factor = "|".join(["Patient", "S", "Year", "Treatment"]),
         names = "|".join(design.index.tolist())
     log:
-        "logs/pca_plots/{factor}.log"
+        "logs/pca_plots/{factor}_{names}.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pca"
 

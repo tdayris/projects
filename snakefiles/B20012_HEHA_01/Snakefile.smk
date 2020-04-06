@@ -81,6 +81,10 @@ rule all:
                 "TP53_Mutation", "BRAF_Mutation", "APC_Mutation",
                 "PI3KCA_Mutation", "RAS_Mutation", "FAM_Mutation"
             ]
+        ),
+        deseq2_table = expand(
+            "deseq2/TSV/DESeq2_{factor}.tsv",
+            factor=["Liver", "Peritoneum"]
         )
     message:
         "Finishing pipeline"
@@ -627,3 +631,130 @@ rule pca_plots:
         "logs/pca_plots/{factor}.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pca"
+
+rule deseq2_dds:
+    input:
+        tximport = ancient("deseq/tximport.RDS"),
+        coldata = "design.tsv"
+    output:
+        dds = temp("deseq2/RDS/DESeq2_dds_{factor}.RDS")
+    message:
+        "Building Deseq2 dataset for {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    params:
+        design = (
+            lambda wildcards: {
+                "Liver": '~Liver',
+                "Peritoneum": '~Peritoneum',
+
+            }[wildcards.factor]
+        )
+    log:
+        "logs/deseq2/dds/{factor}.log"
+    wrapper:
+        f"{git}/deseq2_dataset/bio/deseq2/DESeqDataSetFromTximport"
+
+
+rule deseq2_esf:
+    input:
+        dds = "deseq2/RDS/DESeq2_dds_{factor}.RDS"
+    output:
+        dds = temp("deseq2/RDS/DEseq2_esf_{factor}.RDS")
+    message:
+        "Estimating size factors for {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 40, 200)
+        )
+    params:
+        locfunc = "median"
+    log:
+        "logs/deseq2/esf/{factor}.log"
+    wrapper:
+        f"{git}/deseq2-estimateSizeFactors/bio/deseq2/estimateSizeFactors"
+
+
+rule deseq2_disp:
+    input:
+        dds = "deseq2/RDS/DEseq2_esf_{factor}.RDS"
+    output:
+        disp = temp("deseq2/RDS/DESeq2_DispEst_{factor}.RDS")
+    message:
+        "Estimating sample dispersion for {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 45, 200)
+        )
+    log:
+        "logs/deseq2/disp/{factor}.log"
+    params:
+        fittype = "parametric"
+    wrapper:
+        f"{git}/deseq2-disp.R/bio/deseq2/estimateDispersions"
+
+
+rule deseq2_vst:
+    input:
+        dds = "deseq2/RDS/DESeq2_DispEst_{factor}.RDS"
+    output:
+        rds = temp("deseq2/RDS/DESeq2_vst_{factor}.RDS"),
+        tsv = "deseq2/TSV/DEseq2_VST_{factor}.tsv"
+    message:
+        "Computing variance stabilizing transform for {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: attempt * 8192
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 40
+        )
+    log:
+        "logs/deseq2/vst/{factor}.log"
+    wrapper:
+        f"{git}/deseq2-vst/bio/deseq2/vst"
+
+rule deseq2_waldtest:
+    input:
+        dds = "deseq2/RDS/DESeq2_DispEst_{factor}.RDS"
+    output:
+        rds = "deseq2/RDS/DESeq2_WaldTest_{factor}.RDS",
+        tsv = report(
+            "deseq2/TSV/DESeq2_{factor}.tsv",
+            caption="../../reports/deseq2.complete.table.rst",
+            category="Differential Expression"
+        )
+    message:
+        "Performing DESeq2 wald test on {wildcards.factor}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: attempt * 5125
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 30
+        )
+    log:
+        "logs/deseq2_waldtest/{factor}.log"
+    wrapper:
+        f"{git}/deseq2-waldtest/bio/deseq2/nbinomWaldTest"

@@ -503,7 +503,7 @@ rule tximport:
             lambda wildcards, attempt: attempt * 119
         )
     params:
-        extra = "type = 'salmon', txOut = TRUE"
+        extra = "type = 'salmon'"
     log:
         "logs/tximport.log"
     wrapper:

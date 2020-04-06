@@ -678,6 +678,8 @@ rule tximport:
         time_min = (
             lambda wildcards, attempt: 240 * attempt
         )
+    params:
+        extra = "type = 'salmon', txOut = TRUE"
     log:
         "logs/tximport.log"
     wrapper:

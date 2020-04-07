@@ -364,7 +364,7 @@ rule correct_cdna_names:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
-        "../envs/bash.yaml"
+        "../../envs/bash.yaml"
     log:
         "logs/correct_cdna_names.log"
     shell:

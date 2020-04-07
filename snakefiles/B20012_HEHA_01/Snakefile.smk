@@ -349,7 +349,7 @@ rule download_fasta_cdna:
 
 rule salmon_index:
     input:
-        "resources/Homo_sapiens_cdna.fasta"
+        ancient("resources/Homo_sapiens_cdna.fasta")
     output:
         directory("salmon/index/Homo_sapiens")
     message:

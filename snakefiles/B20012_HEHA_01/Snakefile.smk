@@ -347,9 +347,33 @@ rule download_fasta_cdna:
         f"{swv}/bio/reference/ensembl-sequence"
 
 
+rule correct_cdna_names:
+    input:
+        "resources/Homo_sapiens_cdna.fasta"
+    output:
+        temp("resources/Homo_sapiens_cdna_corrected.fasta")
+    message:
+        "Correcting CDNA names"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../envs/bash.yaml"
+    log:
+        "logs/correct_cdna_names.log"
+    shell:
+        "sed 's/\.[0-9]\+ / /g' {input} > {output} 2> {log}"
+
+
 rule salmon_index:
     input:
-        ancient("resources/Homo_sapiens_cdna.fasta")
+        "resources/Homo_sapiens_cdna_corrected.fasta"
     output:
         directory("salmon/index/Homo_sapiens")
     message:

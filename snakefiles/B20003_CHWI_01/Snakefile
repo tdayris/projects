@@ -21,7 +21,7 @@ design = pandas.read_csv(
     design_path,
     sep="\t",
     header=0,
-    index_col=None,
+    index_col=0,
     dtype=str
 )
 
@@ -32,7 +32,7 @@ FASTA = "resources/mus_musculus.fasta"
 
 rule all:
     input:
-        expand("calling/{sample}.vcf", sample=design.Sample_id)
+        expand("calling/{sample}.vcf", sample=design.index)
     message:
         "Finishing pipeline "
 

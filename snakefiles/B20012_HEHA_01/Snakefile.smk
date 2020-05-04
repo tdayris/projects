@@ -785,3 +785,9 @@ rule deseq2_waldtest:
         "logs/deseq2_waldtest/{factor}.log"
     wrapper:
         f"{git}/deseq2-waldtest/bio/deseq2/nbinomWaldTest"
+
+
+## TODO: Hierarchical sample clustering
+## TODO: Factor correlation
+## TODO: Immune decov
+## TODO: Clustering on Immune decov

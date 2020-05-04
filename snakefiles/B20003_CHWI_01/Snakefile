@@ -39,7 +39,7 @@ rule all:
 
 rule haplotype_caller:
     input:
-        bam = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
+        bam = lambda wildcards: design_dict["Bam_File"][int(wildcards.sample)],
         ref = FASTA,
         dbsnp = ""
     output:

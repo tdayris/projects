@@ -32,22 +32,7 @@ FASTA = "resources/mus_musculus.fasta"
 
 rule all:
     input:
-        haplotype_caller = expand(
-            "haplotype_caller/{sample}.g.vcf",
-            sample=design.Sample_id
-        ),
-        strelka = expand(
-            directory("strelka/{sample}"),
-            sample=design.Sample_id
-        ),
-        mutect2 = expand(
-            "gatk/mutect2/{sample}.vcf",
-            sample=design.Sample_id
-        ),
-        bcftools = expand(
-            "bcftools/call/{sample}.vcf",
-            sample=design.Sample_id
-        )
+        "calling/{sample}.vcf"
     message:
         "Finishing pipeline "
 
@@ -58,7 +43,7 @@ rule haplotype_caller:
         ref = FASTA,
         dbsnp = ""
     output:
-        gvcf = "gatk/haplotype_caller/{sample}.g.vcf"
+        gvcf = temp("gatk/haplotype_caller/{sample}.g.vcf")
     message:
         "Calling variants in {sample} with haplotype caller"
     threads:
@@ -88,7 +73,7 @@ rule mutect2:
         fasta = FASTA,
         map = lambda wildcards: design_dict["Bam_File"][wildcards.sample]
     output:
-        vcf = "gatk/mutect2/{sample}.vcf"
+        vcf = temp("gatk/mutect2/{sample}.vcf")
     message:
         "Calling variants in {wildcards.sample} with Mutect2"
     threads:
@@ -114,7 +99,7 @@ rule bcftools_call:
         samples = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
         indexes = lambda wildcards: design_dict["Bam_Index"][wildcards.sample]
     output:
-        "bcftools/call/{sample}.bcf"
+        temp("bcftools/call/{sample}.bcf")
     message:
         "Calling variants on {wildcards.sample} with BCFTools"
     threads:
@@ -191,7 +176,12 @@ rule merge:
         mutect2 = "gatk/mutect2/{sample}.vcf",
         bcftools = "bcftools/call/{sample}.vcf"
     output:
-        "calling/{sample}.vcf"
+        report(
+            "calling/{sample}.vcf",
+            caption="../reports/vcf.rst",
+            category="VCF"
+        )
+
     message:
         "Merging call results for {wildcards.sample}"
     threads:

@@ -32,7 +32,7 @@ FASTA = "resources/mus_musculus.fasta"
 
 rule all:
     input:
-        expand("calling/{sample}.vcf", sample==design.Sample_id)
+        expand("calling/{sample}.vcf", sample=design.Sample_id)
     message:
         "Finishing pipeline "
 

@@ -208,4 +208,4 @@ rule merge:
     log:
         "logs/bcftools/merge/{sample}.log"
     wrapper:
-        f"{git}/bio/bcftools/merge
+        f"{git}/bio/bcftools/merge"

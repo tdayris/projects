@@ -1,0 +1,162 @@
+import sys
+import pandas
+import os.path
+
+from snakemake.utils import min_version, makedirs
+from pathlib import Path
+from typing import Any, Dict
+
+if sys.version_info < (3, 7):
+    raise SystemError("Please use Python 3.7 or later")
+
+min_version('5.10.0')
+wrapper_version = '0.49.0'
+git = "https://raw.githubusercontent.com/tdayris-perso/snakemake-wrappers"
+singularity: "docker://continuumio/miniconda3:5.0.1"
+
+design_path = Path("design_calling.csv")
+if not design_path.exists():
+    raise FileNotFoundError(f"Could not find {str(design_path)}")
+
+design = pandas.read_csv(
+    design_path,
+    sep="\t",
+    header=0,
+    index_col=None,
+    dtype=str
+)
+
+design_dict = design.to_dict()
+
+FASTA = "resources/mus_musculus.fasta"
+
+
+rule all:
+    input:
+        haplotype_caller = expand(
+            "haplotype_caller/{sample}.g.vcf",
+            sample=design.Sample_id
+        ),
+        strelka = expand(
+            directory("strelka/{sample}"),
+            sample=design.Sample_id
+        ),
+        mutect2 = expand(
+            "gatk/mutect2/{sample}.vcf",
+            sample=design.Sample_id
+        ),
+        bcftools = expand(
+            "bcftools/call/{sample}.bcf",
+            sample=design.Sample_id
+        )
+    message:
+        "Finishing pipeline "
+
+
+rule haplotype_caller:
+    input:
+        bam = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
+        ref = FASTA,
+        dbsnp = ""
+    output:
+        gvcf = "gatk/haplotype_caller/{sample}.g.vcf"
+    message:
+        "Calling variants in {sample} with haplotype caller"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 10240, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        extra = (
+            lambda wildcards: f"--create-output-variant-index --dbsnp {input.dbsnp}"
+        ),
+        java_opts = (
+            lambda wildcards: f"-Xmx={resources.mem_mb}M"
+        )
+    log:
+        "logs/haplotype_caller/{sample}.log"
+    wrapper:
+        f"{wrapper_version}/bio/gatk/haplotypecaller"
+
+
+rule mutect2:
+    input:
+        fasta = FASTA,
+        map = lambda wildcards: design_dict["Bam_File"][wildcards.sample]
+    output:
+        vcf = "gatk/mutect2/{sample}.vcf"
+    message:
+        "Calling variants in {wildcards.sample} with Mutect2"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 10240, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        extra = "--create-output-variant-index "
+    log:
+        "logs/mutect2/{sample}.log"
+    wrapper:
+        f"{wrapper_version}/bio/gatk/mutect"
+
+
+rule bcftools_call:
+    input:
+        ref = FASTA,
+        samples = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
+        indexes = lambda wildcards: design_dict["Bam_Index"][wildcards.sample]
+    output:
+        "bcftools/call/{sample}.bcf"
+    message:
+        "Calling variants on {wildcards.sample} with BCFTools"
+    threads:
+        2
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        mpileup = "--adjust-MQ 50 --min-MQ 10 --min-BQ 15",
+        call = ""
+    log:
+        "logs/bcftools_call/{sample}.log"
+    wrapper:
+        f"{wrapper_version}/bio/bcftools/call"
+
+
+rule strelka:
+    input:
+        bam = lambda wildcards: design_dict["Bam_File"][wildcards.sample]
+    output:
+        directory("strelka/{sample}")
+    message:
+        "Calling large indels with Strelka on {wildcards.sample}"
+    threads:
+        8
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 10240, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        ref = FASTA,
+        config_extra = "",
+        run_extra = ""
+    log:
+        "logs/strelka/{sample}.log"
+    wrapper:
+        f"{wrapper_version}/bio/strelka/germline"

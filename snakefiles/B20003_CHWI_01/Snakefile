@@ -6,12 +6,11 @@ from snakemake.utils import min_version, makedirs
 from pathlib import Path
 from typing import Any, Dict
 
-if sys.version_info < (3, 7):
-    raise SystemError("Please use Python 3.7 or later")
+if sys.version_info < (3, 8):
+    raise SystemError("Please use Python 3.8 or later")
 
-min_version('5.10.0')
-wrapper_version = '0.49.0'
-git = "https://raw.githubusercontent.com/tdayris-perso/snakemake-wrappers"
+min_version('5.16.0')
+git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
 singularity: "docker://continuumio/miniconda3:5.0.1"
 
 design_path = Path("design_calling.csv")
@@ -46,7 +45,7 @@ rule all:
             sample=design.Sample_id
         ),
         bcftools = expand(
-            "bcftools/call/{sample}.bcf",
+            "bcftools/call/{sample}.vcf",
             sample=design.Sample_id
         )
     message:
@@ -81,7 +80,7 @@ rule haplotype_caller:
     log:
         "logs/haplotype_caller/{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/gatk/haplotypecaller"
+        f"{git}/bio/gatk/haplotypecaller"
 
 
 rule mutect2:
@@ -106,7 +105,7 @@ rule mutect2:
     log:
         "logs/mutect2/{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/gatk/mutect"
+        f"{git}/bio/gatk/mutect"
 
 
 rule bcftools_call:
@@ -131,9 +130,33 @@ rule bcftools_call:
         mpileup = "--adjust-MQ 50 --min-MQ 10 --min-BQ 15",
         call = ""
     log:
-        "logs/bcftools_call/{sample}.log"
+        "logs/bcftools/call/{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/bcftools/call"
+        f"{git}/bio/bcftools/call"
+
+
+rule bcftools_convert:
+    input:
+        "bcftools/call/{sample}.bcf"
+    output:
+        "bcftools/call/{sample}.vcf"
+    message:
+        "Converting BCF to VCF for further inspections on {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 8192, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        "--output-type v"
+    log:
+        "logs/bcftools/view/{sample}.log"
+    wrapper:
+        f"{git}/bio/bcftools/view"
 
 
 rule strelka:
@@ -159,4 +182,30 @@ rule strelka:
     log:
         "logs/strelka/{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/strelka/germline"
+        f"{git}/bio/strelka/germline"
+
+
+rule merge:
+    input:
+        haplotype_caller = "haplotype_caller/{sample}.g.vcf",
+        mutect2 = "gatk/mutect2/{sample}.vcf",
+        bcftools = "bcftools/call/{sample}.vcf"
+    output:
+        "calling/{sample}.vcf"
+    message:
+        "Merging call results for {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 10240, 20480)
+        ),
+        time_min = (
+            lambda wildcards, attempt: attempt * 115
+        )
+    params:
+        "--merge all --output-type v"
+    log:
+        "logs/bcftools/merge/{sample}.log"
+    wrapper:
+        f"{git}/bio/bcftools/merge

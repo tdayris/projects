@@ -109,6 +109,8 @@ rule normalize_vcf:
         )
     group:
         "split_variants"
+    params:
+        "--multiallelic '-'"
     log:
         "logs/bcftools/norm/{sample}.log"
     wrapper:

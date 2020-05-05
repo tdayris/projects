@@ -1,0 +1,220 @@
+import sys
+import pandas
+import os.path
+
+from snakemake.utils import min_version, makedirs
+from pathlib import Path
+from typing import Any, Dict
+
+if sys.version_info < (3, 8):
+    raise SystemError("Please use Python 3.8 or later")
+
+min_version('5.16.0')
+git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
+container: "docker://continuumio/miniconda3:5.0.1"
+
+
+compressed_vcf = Path(
+    #"/mnt/beegfs/scratch/bioinfo_core/B19111_ETRO_01/annovar/snpsift/GeneSets/"
+    "/home/tdayris/Documents/Projects/B19111_ETRO_01"
+)
+
+vcf_paths = {
+    str(f.name)[:-7]: f
+    for f in compressed_vcf.iterdir()
+    if str(f).endswith(".vcf.gz")
+}
+
+rule all:
+    input:
+        "snpsift/varType/M1009-N.exome.vcf.hg19_multianno.vcf"
+    message:
+        "Finishing pipeline"
+
+
+rule tabix_index:
+    input:
+        "{sample}"
+    output:
+        "{sample}.tbi"
+    message:
+        "Indexing {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        "-p vcf"
+    wrapper:
+        f"{git}/bio/tabix"
+
+
+rule snpsift_filter:
+    input:
+        vcf = lambda w: str(vcf_paths[w.sample]),
+        idx = lambda w: f"{vcf_paths[w.sample]}.tbi"
+    output:
+        vcf = "snpsift/filtered/{sample}.vcf.gz"
+    message:
+        "Filtering {wildcards.sample}"
+    threads:
+        3
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        snpsift_filters = "((! exists dbNSFP_ExAC_NFE_AF) | (dbNSFP_ExAC_NFE_AF <= 0.01))",
+        bcftools_filter = "FORMAT/AD>5"
+    group:
+        "format"
+    conda:
+        "../../envs/biotools.yaml"
+    log:
+        "logs/snpsift_filter/{sample}.log"
+    shell:
+        " bcftools filter "
+        " --include '{params.bcftools_filter}' "
+        " --output-type v "
+        " {input.vcf} "
+        " | "
+        "  SnpSift filter "
+        "'{params.snpsift_filters}' "
+        " | gzip -c > {output.vcf} "
+        "2> {log}"
+
+
+rule normalize_vcf:
+    input:
+        "snpsift/filtered/{sample}.vcf.gz"
+    output:
+        "bcftools/norm/{sample}.vcf"
+    message:
+        "Normalizing {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/bcftools/norm/{sample}.log"
+    wrapper:
+        f"{git}/bio/bcftools/norm"
+
+
+rule snpsift_vartype:
+    input:
+        vcf = "bcftools/norm/{sample}.vcf"
+    output:
+        vcf = "snpsift/varType/{sample}.vcf"
+    message:
+        "Computing variant type for {wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/snpsift/vartype/{sample}.log"
+    wrapper:
+        f"{git}/bio/snpsift/varType"
+
+
+FIELDS = (
+    "CHROM "                             # 0
+    "POS "
+    "REF "
+    "ALT "
+    "FILTER "
+    "VAF "                              # 5
+    "NAD "
+    "NRD "
+    "NDP "
+    "ANN[*].EFFECT "
+    "ANN[*].GENE "                      # 10
+    "ANN[*].GENEID "
+    "ANN[*].IMPACT "
+    "ANN[*].HGVS_P "
+    "ANN[*].HGVS_C "
+    "ANN[*].CDNA_POS "                  # 15
+    "ANN[*].BIOTYPE "
+    "dbNSFP_Interpro_domain "
+    "dbNSFP_1000Gp3_EUR_AC "
+    "dbNSFP_Uniprot_acc "
+    "dbNSFP_SIFT_pred "                 # 20
+    "dbNSFP_MetaSVM_pred "
+    "dbNSFP_MutationTaster_pred "
+    "dbNSFP_MutationAssessor_pred "
+    "dbNSFP_PROVEAN_pred "
+    "dbNSFP_LRT_pred "                  # 25
+    "dbNSFP_Polyphen2_HDIV_pred "
+    "dbNSFP_FATHMM_pred "
+    "GWASCAT_PUBMED_ID "
+    "MSigDb "
+    "dbNSFP_ExAC_NFE_AF "               # 30
+    "dbNSFP_ExAC_SAS_AF "
+    "dbNSFP_ExAC_Adj_AF "
+    "dbNSFP_ExAC_AFR_AF "
+    "dbNSFP_ExAC_AF "
+    "dbNSFP_ExAC_FIN_AF "               # 35
+    "dbNSFP_1000Gp3_EUR_AF "
+    "dbNSFP_ExAC_AMR_AF "
+    "dbNSFP_ExAC_EAS_AF "
+    "dbNSFP_ESP6500_EA_AF "
+    "dbNSFP_1000Gp3_AMR_AF "            # 40
+    "dbNSFP_1000Gp3_AF "
+    "dbNSFP_1000Gp3_EAS_AF "
+    "dbNSFP_1000Gp3_EUR_AF "
+    "dbNSFP_1000Gp3_AFR_AF "
+    "dbNSFP_1000Gp3_SAS_AF"             # 45
+)
+
+
+rule snpsift_table:
+    input:
+        vcf = "snpsift/vafed/{sample}.vcf.gz"
+    output:
+        tsv = "bcftools/norm/{sample}.vcf"
+    message:
+        "Building table from vcf file"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "biotools.yaml"
+    group:
+        "format"
+    params:
+        fields = FIELDS
+    log:
+        "logs/snpsift_table/{sample}.log"
+    shell:
+        "SnpSift extractFields "
+        " -e '.' "
+        " -s ',' "
+        " {input.vcf} "
+        " {params.fields} "
+        " > {output.tsv} "
+        " 2> {log}"

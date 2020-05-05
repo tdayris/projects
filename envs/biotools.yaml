@@ -1,0 +1,13 @@
+---
+name: biotools
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+  - r
+dependencies:
+  - bioconda:snpeff=4.3.1t
+  - bioconda:snpsift=4.3.
+  - bioconda:bcftools=1.10.2
+  - bioconda:pbgzip=2016.08.04
+  - bioconda:tabix=0.2.6

@@ -1,0 +1,3 @@
+WorkflowError in line 12 of /mnt/beegfs/userdata/t_dayris/projects/snakefiles/B20003_CHWI_01/Snakefile:
+Expecting Snakemake version 5.16.0 or higher.
+  File "/mnt/beegfs/userdata/t_dayris/projects/snakefiles/B20003_CHWI_01/Snakefile", line 12, in <module>

@@ -49,6 +49,8 @@ rule tabix_index:
         )
     params:
         "-p vcf"
+    group:
+        "filter"
     log:
         "logs/tabix/{file}.log"
     wrapper:
@@ -76,7 +78,7 @@ rule snpsift_filter:
         snpsift_filters = "((! exists dbNSFP_ExAC_NFE_AF) | (dbNSFP_ExAC_NFE_AF <= 0.01))",
         bcftools_filter = "FORMAT/AD>5"
     group:
-        "format"
+        "filter"
     conda:
         "../../envs/biotools.yaml"
     log:
@@ -109,6 +111,8 @@ rule normalize_vcf:
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
+    group:
+        "annotate"
     log:
         "logs/bcftools/norm/{sample}.log"
     wrapper:
@@ -131,6 +135,8 @@ rule snpsift_vartype:
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
+    group:
+        "annotate"
     log:
         "logs/snpsift/vartype/{sample}.log"
     wrapper:

@@ -13,11 +13,15 @@ min_version('5.16.0')
 git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
 container: "docker://continuumio/miniconda3:5.0.1"
 
-design = "../design.tsv"
+design = pandas.read_csv(
+    "../design.tsv",
+    header=0,
+    index=0
+)
 
 rule all:
     input:
-        # TODO: Fill this with final files
+        expand("bcftools/norm/{sample}.vcf.gz", sample=design.index)
     message:
         "Finishing pipeline"
 
@@ -44,7 +48,7 @@ rule rename:
         "../../envs/bash.yaml"
     params:
         "-s"
-    logs:
+    log:
         "logs/link/{sample}"
     shell:
         "ln {params} {input} {output} 2> {log}"

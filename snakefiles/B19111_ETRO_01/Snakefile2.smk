@@ -16,7 +16,7 @@ container: "docker://continuumio/miniconda3:5.0.1"
 design = pandas.read_csv(
     "../design.tsv",
     header=0,
-    index=0
+    index_col=0
 )
 
 rule all:

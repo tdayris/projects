@@ -64,7 +64,7 @@ rule snpsift_filter:
     message:
         "Filtering {wildcards.sample}"
     threads:
-        3
+        4
     resources:
         mem_mb = (
             lambda wildcards, attempt: min(attempt * 1024, 10240)
@@ -74,52 +74,38 @@ rule snpsift_filter:
         )
     params:
         snpsift_filters = "((! exists dbNSFP_ExAC_NFE_AF) | (dbNSFP_ExAC_NFE_AF <= 0.01))",
-        bcftools_filter = "FORMAT/AD>5"
+        bcftools_filter = "FORMAT/AD>5",
+        view_filters = "-M 1"
     conda:
         "../../envs/biotools.yaml"
     log:
-        "logs/snpsift_filter/{sample}.log"
+        view = "logs/bcftools/view/{sample}.log"
+        bcftools_filter = "logs/bcftools/filter/{sample}.log"
+        snpsift_filter = "logs/snpsift/filter/{sample}.log"
+        bgzip = "logs/bgzip/filter/{sample}.log"
     shell:
+        " bcftools view "
+        " {params.view_filters}"
+        " {input.vcf} "
+        " --output-type v "
+        " 2> {log.view} "
+        " | "
         " bcftools filter "
         " --include '{params.bcftools_filter}' "
         " --output-type v "
-        " {input.vcf} "
+        " 2> {log.bcftools_filter} "
         " | "
         "  SnpSift filter "
         "'{params.snpsift_filters}' "
-        " | bgzip -c > {output.vcf} "
-        "2> {log}"
-
-
-rule normalize_vcf:
-    input:
-        "snpsift/filtered/{sample}.vcf.gz"
-    output:
-        "bcftools/norm/{sample}.vcf"
-    message:
-        "Normalizing {wildcards.sample}"
-    threads:
-        1
-    resources:
-        mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
-        ),
-        time_min = (
-            lambda wildcards, attempt: min(attempt * 20, 200)
-        )
-    group:
-        "split_variants"
-    params:
-        "--multiallelic '-'"
-    log:
-        "logs/bcftools/norm/{sample}.log"
-    wrapper:
-        f"{git}/bio/bcftools/norm"
+        " 2> {log.snpsift_filter} "
+        " | "
+        " bgzip -c > {output.vcf} "
+        "2> {log.bgzip}"
 
 
 rule snpsift_vartype:
     input:
-        vcf = "bcftools/norm/{sample}.vcf"
+        vcf = "snpsift/filtered/{sample}.vcf.gz"
     output:
         vcf = "snpsift/varType/{sample}.vcf"
     message:

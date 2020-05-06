@@ -79,9 +79,9 @@ rule snpsift_filter:
     conda:
         "../../envs/biotools.yaml"
     log:
-        view = "logs/bcftools/view/{sample}.log"
-        bcftools_filter = "logs/bcftools/filter/{sample}.log"
-        snpsift_filter = "logs/snpsift/filter/{sample}.log"
+        view = "logs/bcftools/view/{sample}.log",
+        bcftools_filter = "logs/bcftools/filter/{sample}.log",
+        snpsift_filter = "logs/snpsift/filter/{sample}.log",
         bgzip = "logs/bgzip/filter/{sample}.log"
     shell:
         " bcftools view "

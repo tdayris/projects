@@ -195,7 +195,7 @@ rule compress_and_index:
     conda:
         "../../envs/biotools.yaml"
     shell:
-        "bgzip -c {input} > {output.vcf} && tabix -p vcf {input}"
+        "bgzip -c {input} > {output.vcf} && tabix -p vcf {output.vcf}"
 
 rule calculate_vaf:
     input:

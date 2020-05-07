@@ -191,8 +191,8 @@ rule calculate_vaf:
         )
     group:
         "format"
-    conda:
-        "../../envs/py37.yaml"
+    # conda:
+    #     "../../envs/py37.yaml"
     log:
         "logs/calculate_vaf/{sample}.log"
     run:

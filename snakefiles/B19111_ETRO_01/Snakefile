@@ -26,7 +26,7 @@ vcf_paths = {
 
 rule all:
     input:
-        expand("snpsfit/table/{sample}.tsv", sample=vcf_paths.keys())
+        "tables/complete.tsv"
     message:
         "Finishing pipeline"
 

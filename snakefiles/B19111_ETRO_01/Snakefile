@@ -178,7 +178,7 @@ rule compress_and_index:
         vcf = "snpsift/varType/{sample}.vcf.gz",
         tbi = "snpsift/varType/{sample}.vcf.gz.tbi"
     message:
-        "Compressing and indexing {wildcars.sample}"
+        "Compressing and indexing {wildcards.sample}"
     threads:
         1
     resources:

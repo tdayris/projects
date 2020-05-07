@@ -173,9 +173,71 @@ FIELDS = (
 
 
 
+rule calculate_vaf:
+    input:
+        "snpsift/varType/{sample}.vcf"
+    output:
+        "snpsift/vafed/{sample}.vcf.gz"
+    message:
+        "Filtering on VAF"
+    threads:
+        2
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    group:
+        "format"
+    # conda:
+    #     "py37.yaml"
+    log:
+        "logs/calculate_vaf/{sample}.log"
+    run:
+        import gzip
+        never = True
+
+        with gzip.open(input[0], "rb") as vcf, gzip.open(output[0], "w") as out:
+            for line in vcf:
+                if line.startswith(b"#"):
+                    out.write(line)
+                    if never is True:
+                        out.write(b"##INFO=<ID=VAF,Number=A,Type=Float,Description=\"Variant Allele frequency\">\n")
+                        out.write(b"##INFO=<ID=NAD,Number=A,Type=Float,Description=\"Variant allele depth\">\n")
+                        out.write(b"##INFO=<ID=NDP,Number=A,Type=Float,Description=\"Read depth\">\n")
+                        out.write(b"##INFO=<ID=NRD,Number=A,Type=Float,Description=\"Reference allele depth\">\n")
+                        never = False
+                    continue
+
+                chomp = line[:-1].split(b"\t")
+                try:
+                    sample = {
+                        f: s
+                        for f, s in zip(
+                            chomp[8].split(b":"),
+                            chomp[9].split(b":")
+                        )
+                    }
+                    vaf = int(sample[b"AD"].split(b",")[1]) / int(sample[b"DP"])
+                    if vaf > 0.1:
+                        chomp[7] += b";VAF=" + str(vaf).encode()
+                        chomp[7] += b";NAD=" + sample[b"AD"]
+                        chomp[7] += b";NDP=" + sample[b"DP"]
+                        chomp[7] += b";NRD=" + str(int(sample[b"DP"]) - int(sample[b"AD"].split(b",")[1])).encode()
+                        out.write(b"\t".join(chomp) + b"\n")
+
+                except KeyError:
+                    pass
+                except ZeroDivisionError:
+                    pass
+
+
+
 rule snpsift_table:
     input:
-        vcf = "snpsift/varType/{sample}.vcf"
+        vcf = "snpsift/vafed/{sample}.vcf.gz"
     output:
         tsv = "snpsfit/table/{sample}.tsv"
     message:

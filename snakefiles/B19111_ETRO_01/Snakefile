@@ -60,7 +60,7 @@ rule snpsift_filter:
         vcf = lambda w: str(vcf_paths[w.sample]),
         idx = lambda w: f"{vcf_paths[w.sample]}.tbi"
     output:
-        vcf = "snpsift/filtered/{sample}.vcf.gz"
+        vcf = temp("snpsift/filtered/{sample}.vcf.gz")
     message:
         "Filtering {wildcards.sample}"
     threads:
@@ -102,7 +102,7 @@ rule snpsift_vartype:
     input:
         vcf = "snpsift/filtered/{sample}.vcf.gz"
     output:
-        vcf = "snpsift/varType/{sample}.vcf"
+        vcf = temp("snpsift/varType/{sample}.vcf")
     message:
         "Computing variant type for {wildcards.sample}"
     threads:
@@ -201,7 +201,7 @@ rule calculate_vaf:
     input:
         "snpsift/varType/{sample}.vcf.gz"
     output:
-        "snpsift/vafed/{sample}.vcf.gz"
+        temp("snpsift/vafed/{sample}.vcf.gz")
     message:
         "Filtering on VAF"
     threads:

@@ -26,7 +26,7 @@ vcf_paths = {
 
 rule all:
     input:
-        expand("snpsift/varType/{sample}.vcf", sample=vcf_paths.keys())
+        expand("snpsfit/table/{sample}.tsv", sample=vcf_paths.keys())
     message:
         "Finishing pipeline"
 
@@ -172,11 +172,12 @@ FIELDS = (
 )
 
 
+
 rule snpsift_table:
     input:
         vcf = "snpsift/vafed/{sample}.vcf.gz"
     output:
-        tsv = "bcftools/norm/{sample}.vcf"
+        tsv = "snpsfit/table/{sample}.tsv"
     message:
         "Building table from vcf file"
     threads:

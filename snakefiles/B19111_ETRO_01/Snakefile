@@ -301,7 +301,7 @@ rule concatenate:
     message:
         "TSV concatenation"
     threads:
-        6
+        5
     resources:
         mem_mb = (
             lambda wildcards, attempt: min(attempt * 1024, 10240)
@@ -316,11 +316,9 @@ rule concatenate:
     log:
         head = "logs/concatenate/head.log",
         sed = "logs/concatenate/sed.log",
-        cat = "logs/concatenate/cat.log",
         sort = "logs/concatenate/sort.log",
         uniq = "logs/concatenate/uniq.log"
     shell:
         "head -n 1 {input[0]} > {output} 2> {log.head} && "
-        "cat {input} 2> {log.cat} | while read TSV; "
-        "do sed '1d' ${{TSV}} 2> {log.sed}; done "
+        "for TSV in {input}; do sed '1d' ${{TSV}} 2> {log.sed}; done "
         " | sort 2> {log.sort} | uniq >> {output} 2> {log.uniq}"

@@ -314,10 +314,10 @@ rule concatenate:
     group:
         "concatenate"
     log:
-        head = "logs/concatenate/head.log"
-        sed = "logs/concatenate/sed.log"
-        cat = "logs/concatenate/cat.log"
-        sort = "logs/concatenate/sort.log"
+        head = "logs/concatenate/head.log",
+        sed = "logs/concatenate/sed.log",
+        cat = "logs/concatenate/cat.log",
+        sort = "logs/concatenate/sort.log",
         uniq = "logs/concatenate/uniq.log"
     shell:
         "head -n 1 {input[0]} > {output} 2> {log.head} && "

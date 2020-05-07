@@ -291,3 +291,36 @@ rule snpsift_table:
         " {params.fields} "
         " > {output.tsv} "
         " 2> {log}"
+
+
+rule concatenate:
+    input:
+        expand("snpsfit/table/{sample}.tsv", sample=vcf_paths.keys())
+    output;
+        "tables/complete.tsv"
+    message:
+        "TSV concatenation"
+    threads:
+        6
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    group:
+        "concatenate"
+    log:
+        head = "logs/concatenate/head.log"
+        sed = "logs/concatenate/sed.log"
+        cat = "logs/concatenate/cat.log"
+        sort = "logs/concatenate/sort.log"
+        uniq = "logs/concatenate/uniq.log"
+    shell:
+        "head -n 1 {input[0]} > {output} 2> {log.head} && "
+        "cat {input} 2> {log.cat} | while read TSV; "
+        "do sed '1d' ${{TSV}} 2> {log.sed}; done "
+        " | sort 2> {log.sort} | uniq >> {output} 2> {log.uniq}"

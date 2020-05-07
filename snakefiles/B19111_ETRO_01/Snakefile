@@ -175,7 +175,7 @@ FIELDS = (
 
 rule snpsift_table:
     input:
-        vcf = "snpsift/vafed/{sample}.vcf.gz"
+        vcf = "snpsift/varType/{sample}.vcf"
     output:
         tsv = "snpsfit/table/{sample}.tsv"
     message:

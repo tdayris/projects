@@ -84,12 +84,6 @@ rule snpsift_filter:
         snpsift_filter = "logs/snpsift/filter/{sample}.log",
         bgzip = "logs/bgzip/filter/{sample}.log"
     shell:
-        " bcftools view "
-        " {params.view_filters}"
-        " {input.vcf} "
-        " --output-type v "
-        " 2> {log.view} "
-        " | "
         " bcftools filter "
         " --include '{params.bcftools_filter}' "
         " --output-type v "

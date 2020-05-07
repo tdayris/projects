@@ -175,8 +175,8 @@ rule compress_and_index:
     input:
         "snpsift/varType/{sample}.vcf"
     output:
-        "snpsift/varType/{sample}.vcf.gz"
-        "snpsift/varType/{sample}.vcf.gz.tbi"
+        vcf = "snpsift/varType/{sample}.vcf.gz",
+        tbi = "snpsift/varType/{sample}.vcf.gz.tbi"
     message:
         "Compressing and indexing {sample}"
     threads:
@@ -195,7 +195,7 @@ rule compress_and_index:
     conda:
         "../../envs/biotools.yaml"
     shell:
-        "bgzip -c {input} > {output[0]} && tabix -p vcf {input}"
+        "bgzip -c {input} > {output.vcf} && tabix -p vcf {input}"
 
 rule calculate_vaf:
     input:

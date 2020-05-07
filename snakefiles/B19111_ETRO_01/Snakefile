@@ -296,7 +296,7 @@ rule snpsift_table:
 rule concatenate:
     input:
         expand("snpsfit/table/{sample}.tsv", sample=vcf_paths.keys())
-    output;
+    output:
         "tables/complete.tsv"
     message:
         "TSV concatenation"

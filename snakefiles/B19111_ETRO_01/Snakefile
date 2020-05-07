@@ -171,11 +171,35 @@ FIELDS = (
     "dbNSFP_1000Gp3_SAS_AF"             # 45
 )
 
-
+rule compress_and_index:
+    input:
+        "snpsift/varType/{sample}.vcf"
+    output:
+        "snpsift/varType/{sample}.vcf.gz"
+        "snpsift/varType/{sample}.vcf.gz.tbi"
+    message:
+        "Compressing and indexing {sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    group:
+        "format"
+    log:
+        "logs/compress_and_index/{sample}.log"
+    conda:
+        "../../envs/biotools.yaml"
+    shell:
+        "bgzip -c {input} > {output[0]} && tabix -p vcf {input}"
 
 rule calculate_vaf:
     input:
-        "snpsift/varType/{sample}.vcf"
+        "snpsift/varType/{sample}.vcf.gz"
     output:
         "snpsift/vafed/{sample}.vcf.gz"
     message:

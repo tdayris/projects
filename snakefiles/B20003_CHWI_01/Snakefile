@@ -27,7 +27,7 @@ design = pandas.read_csv(
 
 design_dict = design.to_dict()
 print(design_dict)
-FASTA = "resources/mus_musculus.fasta"
+FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
 
 rule all:

@@ -30,6 +30,10 @@ print(design_dict)
 FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
 
+wildcard_constraints:
+    sample = "|".join(design.index.tolist())
+
+
 rule all:
     input:
         expand("calling/{sample}.vcf", sample=design.index)
@@ -39,7 +43,7 @@ rule all:
 
 rule haplotype_caller:
     input:
-        bam = lambda wildcards: design_dict["Bam_File"][f"S{wildcards.sample}"],
+        bam = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
         ref = FASTA,
         dbsnp = ""
     output:

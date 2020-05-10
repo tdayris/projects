@@ -61,7 +61,7 @@ rule haplotype_caller:
         )
     params:
         extra = (
-            lambda wildcards: f"--create-output-variant-index
+            lambda wildcards: "--create-output-variant-index"
         ),
         java_opts = (
             lambda wildcards: f"-Xmx={resources.mem_mb}M"

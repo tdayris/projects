@@ -172,7 +172,7 @@ rule strelka:
 
 rule merge:
     input:
-        haplotype_caller = "haplotype_caller/{sample}.g.vcf",
+        haplotype_caller = "gatk/haplotype_caller/{sample}.g.vcf",
         mutect2 = "gatk/mutect2/{sample}.vcf",
         bcftools = "bcftools/call/{sample}.vcf"
     output:

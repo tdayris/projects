@@ -64,7 +64,7 @@ rule haplotype_caller:
             lambda wildcards: "--create-output-variant-index"
         ),
         java_opts = (
-            lambda wildcards: f"-Xmx={resources.mem_mb}M"
+            lambda wildcards: f"-Xmx=3G"
         )
     log:
         "logs/haplotype_caller/{sample}.log"

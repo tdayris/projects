@@ -38,7 +38,7 @@ rule all:
     input:
         calls=expand("snpeff/{sample}.vcf.gz", sample=design.index),
         stats=expand("snpeff/{sample}.html", sample=design.index),
-        csvstats=expand("snpeff/{sample}.csv", sample=design.index)
+        multiqc="qc/multiqc.html"
     message:
         "Finishing pipeline "
 
@@ -242,8 +242,8 @@ rule snpeff:
         "bcftools/compress/{sample}.vcf.gz"
     output:
         calls="snpeff/{sample}.vcf.gz",
-        stats="snpeff/{sample}.html",
-        csvstats="snpeff/{sample}.csv"
+        stats="snpeff/report/{sample}.html",
+        csvstats="snpeff/stats/{sample}.csv"
     message:
         "Annotating {wildcards.sample} with snpeff"
     threads:
@@ -262,3 +262,26 @@ rule snpeff:
         "logs/snpeff/{sample}.log"
     wrapper:
         f"{git}/bio/snpeff"
+
+
+rule multiqc:
+    input:
+        expand("snpeff/stats/{sample}.csv", sample=design.index),
+        expand("snpeff/report/{sample}.html", sample=design.index)
+    output:
+        "qc/multiqc.html"
+    message:
+        "Compiling qc metrics"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        f"{git}/bio/multiqc"

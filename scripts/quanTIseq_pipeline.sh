@@ -17,7 +17,7 @@
 RUNUID=`id -u`
 RUNGID=`id -g`
 # get operating system:
-UNAME=`uname` 
+UNAME=`uname`
 
 # check OS to define if the pipeline will be run in Docker or Singularity:
 if [ $UNAME == "Linux" ]; then
@@ -50,7 +50,7 @@ case $container in
       echo "Error: Docker is not installed!"
       exit 1
     fi
-    
+
     docker_opts=""
     docker_run="docker run --rm --user ${RUNUID}:${RUNGID}"
     ;;
@@ -64,7 +64,7 @@ case $container in
     # get docker image and create new singularity image:
     if [ ! -e ./quantiseq2.img ]; then
     echo "Building quantiseq singularity image"
-    singularity build quantiseq2.img docker://icbi/quantiseq2
+    # singularity build quantiseq2.img docker://icbi/quantiseq2
     fi
     singularity_vars=""
     singularity_run="singularity run"
@@ -122,8 +122,8 @@ do
 	      ;;
       esac
     fi
-    
-      
+
+
 done
 
 
@@ -136,7 +136,7 @@ done
 if [ "$outputdir" == "" ]; then
    echo "ERROR: parameter --outputdir is mandatory!" >&2
    exit 1
-    
+
 elif [ $outputdir == "." ]; then
     outputdir="$(pwd)/quantiseqResults_$$"
     mkdir -p $outputdir || {
@@ -176,7 +176,7 @@ if [ "${totalcells}" != "" ]; then
         echo "ERROR: Input file ($totalcells) is not readable!" >&2
         exit 1
     fi
-    
+
     case "$container" in
       d)
 	totalcells=" -v "$(realpath2 $totalcells)":/opt/quantiseq/deconvolution/totalcells.txt"
@@ -187,7 +187,7 @@ if [ "${totalcells}" != "" ]; then
 	singularity_vars="$singularity_vars  --btotalcells=TRUE"
 	;;
     esac
-	
+
 fi
 
 # check if "remove genes file" exists and is readable (rmgenes)
@@ -202,7 +202,7 @@ if [ "${rmgenes}" != "" ] && [ "${rmgenes}" != "none" ] && [ "${rmgenes}" != "de
         echo "ERROR: Input file ($rmgenes) is not readable!" >&2
         exit 1
     fi
-    
+
     case "$container" in
       d)
 	rmgenesfile=" -v "$(realpath2 $rmgenes)":/opt/quantiseq/deconvolution/rmgenes.txt"
@@ -211,7 +211,7 @@ if [ "${rmgenes}" != "" ] && [ "${rmgenes}" != "none" ] && [ "${rmgenes}" != "de
 	rmgenesfile=$(realpath2 $rmgenes)":/opt/quantiseq/deconvolution/rmgenes.txt"
 	;;
     esac
-	
+
     rmgenes="path"
 else
     rmgenesfile=""
@@ -237,7 +237,7 @@ if [ ! -r "${inputfile}" ]; then
 fi
 
 if [ "$pipelinestart" != "decon" ]; then
-    
+
     case "$container" in
       d)
 	docker_run=" "$docker_run" -v "$(realpath2 $inputfile)":/opt/quantiseq/Input/inputfile.txt"
@@ -246,7 +246,7 @@ if [ "$pipelinestart" != "decon" ]; then
 	bindMount="$bindMount "$(realpath2 $inputfile)":/opt/quantiseq/Input/inputfile.txt"
 	;;
     esac
-	
+
     # check if rnaSeq-files exist:
     inputfiles=(`cut -f 2,3 $inputfile | tr "\t" "\n" | grep -v None`)
 
@@ -258,7 +258,7 @@ if [ "$pipelinestart" != "decon" ]; then
 
         else
             filename=$(basename $file)
-            
+
             case "$container" in
 	      d)
 		docker_run=" "$docker_run" -v "$(realpath2 $file)":/opt/quantiseq/Input/"$filename
@@ -307,4 +307,3 @@ case "$container" in
       $singularity_run
       ;;
 esac
-

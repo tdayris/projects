@@ -26,7 +26,7 @@ vcf_paths = {
 
 rule all:
     input:
-        "tables/complete.tsv"
+        "table/result.tsv"
     message:
         "Finishing pipeline"
 
@@ -293,9 +293,37 @@ rule snpsift_table:
         " 2> {log}"
 
 
+rule add_sample_name:
+    input:
+        tsv = "snpsfit/table/{sample}.tsv"
+    output:
+        tsv = "table/samples/{sample}.tsv"
+    message:
+        "Adding sample name to result table for {wildcards.sample}"
+    threads:
+        2
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/add_sample_name/{sample}.log",
+
+    shell:
+        "awk 'BEGIN{{FS=\"\\t\"}}' "
+        "{{if (NR==1) {{print \"SAMPLE\" FS $0}} "
+        "else {{print \"{sample}\" FS $0}}}}"
+        "{input.tsv} > {output.tsv} 2> {log}"
+
+
 rule concatenate:
     input:
-        expand("snpsfit/table/{sample}.tsv", sample=vcf_paths.keys())
+        expand("table/samples/{sample}.tsv", sample=vcf_paths.keys())
     output:
         "tables/complete.tsv"
     message:
@@ -322,3 +350,188 @@ rule concatenate:
         "head -n 1 {input[0]} > {output} 2> {log.head} && "
         "for TSV in {input}; do sed '1d' ${{TSV}} 2> {log.sed}; done "
         " | sort 2> {log.sort} | uniq >> {output} 2> {log.uniq}"
+
+
+rule variant_frequency:
+    input:
+        tsv = "tables/complete.tsv"
+    output:
+        tsv = temp("table/frequency.tsv")
+    message:
+        "Computing variant grequency among population"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/python3.8.yaml"
+    params:
+        chr = "CHROM",
+        pos = "POS",
+        alt = "ALT"
+    log:
+        "logs/variant_frequency.log"
+    script:
+        "../../scripts/variant_frequency.py"
+
+
+rule filter_out_frequency:
+    input:
+        "table/frequency.tsv"
+    output:
+        temp("table//filtered/frequency.tsv")
+    message:
+        "Filtering on populaiton frequency on final table"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    params:
+        freq = "< 5"
+    group:
+        "awk_filter"
+    log:
+        "logs/filter/frequency.log"
+    shell:
+        "awk 'BEGIN{{FS=\"\\t\"}}"
+        " {{if ($2 {params.freq}) {{print $0}} }}"
+        " {input} > {output} 2> {log}"
+
+
+rule filter_out_vaf:
+    input:
+        "table//filtered/frequency.tsv"
+    output:
+        temp("table//filtered/vaf.tsv")
+    message:
+        "Filtering on VAF"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    params:
+        vaf = ">= 0.3"
+    group:
+        "awk_filter"
+    log:
+        "logs/filter/vaf.log"
+    shell:
+        "awk 'BEGIN{{FS=\"\\t\"}}"
+        " {{if ($8 {params.vaf}) {{print $0}} }}"
+        " {input} > {output} 2> {log}"
+
+
+rule expand_variants:
+    input:
+        "table/filtered/vaf.tsv"
+    output:
+        temp("table/filtered/expanded.tsv")
+    message:
+        "Expanding variants"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/python3.8.yaml"
+    log:
+        "logs/expand_variants.log"
+    script:
+        "expand_variants.py"
+
+
+rule filter_out_utr:
+    input:
+        "table/filtered/expanded.tsv"
+    output:
+        temp("table/filtered/utr.tsv")
+    message:
+        "Filtering out UTR"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/filter/utr.log"
+    shell:
+        "grep -vP \"\\tUTR_\" {input} > {output} 2> {log}"
+
+
+rule filter_gene_name:
+    input:
+        no_utr = "table/filtered/utr.tsv",
+        gene_list = "gene_list.txt"
+    output:
+        temp("table/filtered/gene_name.tsv")
+    message:
+        "Filter on gene names"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/filter/gene_name.log"
+    shell:
+        "grep --file {input.gene_list} {input.no_utr} > {output} 2> {log}"
+
+
+rule drop_duplicates:
+    input:
+        "table/filtered/gene_name.tsv"
+    output:
+        "table/result.tsv"
+    message:
+        "Filtering out duplicates"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/filter/duplicates.log"
+    shell:
+        "uniq {input} > {output} 2> {log}"

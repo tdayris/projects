@@ -485,7 +485,7 @@ rule expand_variants:
     log:
         "logs/expand_variants.log"
     script:
-        "expand_variants.py"
+        "../../scripts/expand_variants.py"
 
 
 rule filter_out_utr:

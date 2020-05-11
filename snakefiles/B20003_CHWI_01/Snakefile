@@ -64,7 +64,7 @@ rule haplotype_caller:
             lambda wildcards: "--create-output-variant-index"
         ),
         java_opts = (
-            lambda wildcards: f"-Xmx=3G"
+            lambda wildcards: f"--java-options '-Xmx3G'"
         )
     log:
         "logs/haplotype_caller/{sample}.log"
@@ -90,7 +90,7 @@ rule mutect2:
             lambda wildcards, attempt: attempt * 115
         )
     params:
-        extra = "--create-output-variant-index "
+        extra = "--create-output-variant-index -Xmx3G"
     log:
         "logs/mutect2/{sample}.log"
     wrapper:

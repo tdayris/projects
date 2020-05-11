@@ -466,9 +466,9 @@ rule max_AF:
 
 rule expand_variants:
     input:
-        "tables/filtered/max_af.tsv"
+        tsv = "tables/filtered/max_af.tsv"
     output:
-        temp("tables/filtered/expanded.tsv")
+        tsv = temp("tables/filtered/expanded.tsv")
     message:
         "Expanding variants"
     threads:

@@ -209,7 +209,7 @@ rule merge:
 rule compress_bcftools_call:
     input:
         "bcftools/call/{sample}.vcf"
-    outout:
+    output:
         vcf = "bcftools/compress/{sample}.vcf.gz",
         tbi = "bcftools/compress/{sample}.vcf.gz.tbi"
     message:
@@ -225,8 +225,6 @@ rule compress_bcftools_call:
         )
     conda:
         "../../envs/biotools.yaml"
-    group:
-        "bcftools_compress"
     params:
         compress = "-c",
         index = "-p vcf"

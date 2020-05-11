@@ -26,7 +26,7 @@ vcf_paths = {
 
 rule all:
     input:
-        "table/result.tsv"
+        "tables/result.tsv"
     message:
         "Finishing pipeline"
 
@@ -263,7 +263,7 @@ rule snpsift_table:
     input:
         vcf = "snpsift/vafed/{sample}.vcf.gz"
     output:
-        tsv = "snpsfit/table/{sample}.tsv"
+        tsv = "snpsfit/tables/{sample}.tsv"
     message:
         "Building table from vcf file for {wildcards.sample}"
     threads:
@@ -282,7 +282,7 @@ rule snpsift_table:
     params:
         fields = FIELDS
     log:
-        "logs/snpsift_table/{sample}.log"
+        "logs/snpsift_tables/{sample}.log"
     shell:
         "SnpSift extractFields "
         " -e '.' "
@@ -295,9 +295,9 @@ rule snpsift_table:
 
 rule add_sample_name:
     input:
-        tsv = "snpsfit/table/{sample}.tsv"
+        tsv = "snpsfit/tables/{sample}.tsv"
     output:
-        tsv = "table/samples/{sample}.tsv"
+        tsv = "tables/samples/{sample}.tsv"
     message:
         "Adding sample name to result table for {wildcards.sample}"
     threads:
@@ -323,7 +323,7 @@ rule add_sample_name:
 
 rule concatenate:
     input:
-        expand("table/samples/{sample}.tsv", sample=vcf_paths.keys())
+        expand("tables/samples/{sample}.tsv", sample=vcf_paths.keys())
     output:
         "tables/complete.tsv"
     message:
@@ -356,7 +356,7 @@ rule variant_frequency:
     input:
         tsv = "tables/complete.tsv"
     output:
-        tsv = temp("table/frequency.tsv")
+        tsv = temp("tables/frequency.tsv")
     message:
         "Computing variant grequency among population"
     threads:
@@ -380,35 +380,11 @@ rule variant_frequency:
         "../../scripts/variant_frequency.py"
 
 
-rule bash_variant_frequency:
-    input:
-        tsv = "tables/complete.tsv"
-    output:
-        tsv = "tables/frequencies.tsv"
-    message:
-        "Building frquencies table"
-    threads:
-        1
-    resources:
-        mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
-        ),
-        time_min = (
-            lambda wildcards, attempt: min(attempt * 20, 200)
-        )
-    conda:
-        "../../envs/bash.yaml"
-    log:
-        "logs/bash_variant_frequency.log"
-    shell:
-        "cut -d '\\t' -f "
-
-
 rule filter_out_frequency:
     input:
-        "table/frequency.tsv"
+        "tables/frequency.tsv"
     output:
-        temp("table/filtered/frequency.tsv")
+        temp("tables/filtered/frequency.tsv")
     message:
         "Filtering on populaiton frequency on final table"
     threads:
@@ -430,15 +406,15 @@ rule filter_out_frequency:
         "logs/filter/frequency.log"
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}"
-        " {{if ($2 {params.freq}) {{print $0}} }}'"
+        " {{if ($2 {params.freq} || NR == 1) {{print $0}} }}'"
         " {input} > {output} 2> {log}"
 
 
 rule filter_out_vaf:
     input:
-        "table/filtered/frequency.tsv"
+        "tables/filtered/frequency.tsv"
     output:
-        temp("table/filtered/vaf.tsv")
+        temp("tables/filtered/vaf.tsv")
     message:
         "Filtering on VAF"
     threads:
@@ -460,15 +436,15 @@ rule filter_out_vaf:
         "logs/filter/vaf.log"
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}"
-        " {{if ($8 {params.vaf}) {{print $0}} }}'"
+        " {{if ($8 {params.vaf} || NR == 1) {{print $0}} }}'"
         " {input} > {output} 2> {log}"
 
 
 rule expand_variants:
     input:
-        "table/filtered/vaf.tsv"
+        "tables/filtered/vaf.tsv"
     output:
-        temp("table/filtered/expanded.tsv")
+        temp("tables/filtered/expanded.tsv")
     message:
         "Expanding variants"
     threads:
@@ -490,9 +466,9 @@ rule expand_variants:
 
 rule filter_out_utr:
     input:
-        "table/filtered/expanded.tsv"
+        "tables/filtered/expanded.tsv"
     output:
-        temp("table/filtered/utr.tsv")
+        temp("tables/filtered/utr.tsv")
     message:
         "Filtering out UTR"
     threads:
@@ -514,10 +490,10 @@ rule filter_out_utr:
 
 rule filter_gene_name:
     input:
-        no_utr = "table/filtered/utr.tsv",
+        no_utr = "tables/filtered/utr.tsv",
         gene_list = "gene_list.txt"
     output:
-        temp("table/filtered/gene_name.tsv")
+        temp("tables/filtered/gene_name.tsv")
     message:
         "Filter on gene names"
     threads:
@@ -539,9 +515,9 @@ rule filter_gene_name:
 
 rule drop_duplicates:
     input:
-        "table/filtered/gene_name.tsv"
+        "tables/filtered/gene_name.tsv"
     output:
-        "table/result.tsv"
+        "tables/result.tsv"
     message:
         "Filtering out duplicates"
     threads:

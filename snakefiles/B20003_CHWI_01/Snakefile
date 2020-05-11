@@ -36,8 +36,8 @@ wildcard_constraints:
 
 rule all:
     input:
-        calls=expand("snpeff/{sample}.vcf.gz", sample=design.index),
-        stats=expand("snpeff/{sample}.html", sample=design.index),
+        calls=expand("snpeff/alls/{sample}.vcf.gz", sample=design.index),
+        stats=expand("snpeff/reports/{sample}.html", sample=design.index),
         multiqc="qc/multiqc.html"
     message:
         "Finishing pipeline "
@@ -241,7 +241,7 @@ rule snpeff:
     input:
         "bcftools/compress/{sample}.vcf.gz"
     output:
-        calls="snpeff/{sample}.vcf.gz",
+        calls="snpeff/calls/{sample}.vcf.gz",
         stats="snpeff/report/{sample}.html",
         csvstats="snpeff/stats/{sample}.csv"
     message:

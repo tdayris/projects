@@ -241,8 +241,8 @@ rule snpeff:
     input:
         "bcftools/compress/{sample}.vcf.gz"
     output:
-        calls="snpeff/{sample}.vcf.gz"
-        stats="snpeff/{sample}.html"
+        calls="snpeff/{sample}.vcf.gz",
+        stats="snpeff/{sample}.html",
         csvstats="snpeff/{sample}.csv"
     message:
         "Annotating {wildcards.sample} with snpeff"
@@ -256,7 +256,7 @@ rule snpeff:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     params:
-        reference = "GRCm38.86"
+        reference = "GRCm38.86",
         extra = "-Xmx4g"
     log:
         "logs/snpeff/{sample}.log"

@@ -265,7 +265,7 @@ rule snpsift_table:
     output:
         tsv = "snpsfit/table/{sample}.tsv"
     message:
-        "Building table from vcf file"
+        "Building table from vcf file for {wildcards.sample}"
     threads:
         1
     resources:
@@ -317,7 +317,7 @@ rule add_sample_name:
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}' "
         "{{if (NR==1) {{print \"SAMPLE\" FS $0}} "
-        "else {{print \"{sample}\" FS $0}}}}"
+        "else {{print \"{wildcards.sample}\" FS $0}}}}"
         "{input.tsv} > {output.tsv} 2> {log}"
 
 
@@ -378,6 +378,30 @@ rule variant_frequency:
         "logs/variant_frequency.log"
     script:
         "../../scripts/variant_frequency.py"
+
+
+rule bash_variant_frequency:
+    input:
+        tsv = "tables/complete.tsv"
+    output:
+        tsv = "tables/frequencies.tsv"
+    message:
+        "Building frquencies table"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/bash_variant_frequency.log"
+    shell:
+        "cut -d '\\t' -f "
 
 
 rule filter_out_frequency:

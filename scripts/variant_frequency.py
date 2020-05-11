@@ -44,7 +44,7 @@ del tsv["variant_key"]
 
 # Reorder columns
 cols = tsv.columns.tolist()[:-1]
-cols = cols[0] + ["Recurence"] + cols[1:]
+cols = [cols[0], "Recurence"] + cols[1:]
 tsv = tsv[cols]
 
 

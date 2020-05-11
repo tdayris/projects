@@ -36,8 +36,8 @@ wildcard_constraints:
 
 rule all:
     input:
-        calls=expand("snpeff/alls/{sample}.vcf.gz", sample=design.index),
-        stats=expand("snpeff/reports/{sample}.html", sample=design.index),
+        calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
+        stats=expand("snpeff/report/{sample}.html", sample=design.index),
         multiqc="qc/multiqc.html"
     message:
         "Finishing pipeline "

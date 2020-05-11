@@ -295,7 +295,7 @@ rule snpsift_table:
 
 rule add_sample_name:
     input:
-        tsv = "snpsfit/tables/{sample}.tsv"
+        tsv = "snpsift/tables/{sample}.tsv"
     output:
         tsv = "tables/samples/{sample}.tsv"
     message:

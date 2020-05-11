@@ -440,9 +440,34 @@ rule filter_out_vaf:
         " {input} > {output} 2> {log}"
 
 
-rule expand_variants:
+rule max_AF:
     input:
         "tables/filtered/vaf.tsv"
+    output:
+        temp("tables/filtered/max_af.tsv")
+    message:
+        "Computing population's AF max"
+    threads:
+        1
+    resources:
+        resources:
+            mem_mb = (
+                lambda wildcards, attempt: attempt * 4096 + 10240
+            ),
+            time_min = (
+                lambda wildcards, attempt: min(attempt * 20, 200)
+            )
+    conda:
+        "../../envs/python3.8.yaml"
+    log:
+        "logs/max_AF.log"
+    script:
+        "../../scripts/max_af.py"
+
+
+rule expand_variants:
+    input:
+        "tables/filtered/max_af.tsv"
     output:
         temp("tables/filtered/expanded.tsv")
     message:
@@ -450,12 +475,13 @@ rule expand_variants:
     threads:
         1
     resources:
-        mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
-        ),
-        time_min = (
-            lambda wildcards, attempt: min(attempt * 20, 200)
-        )
+        resources:
+            mem_mb = (
+                lambda wildcards, attempt: attempt * 4096 + 10240
+            ),
+            time_min = (
+                lambda wildcards, attempt: min(attempt * 20, 200)
+            )
     conda:
         "../../envs/python3.8.yaml"
     log:

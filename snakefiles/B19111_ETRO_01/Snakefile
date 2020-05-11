@@ -50,7 +50,7 @@ rule tabix_index:
     params:
         "-p vcf"
     log:
-        "logs/tabix/{file}.log"
+        "logs/tabix{file}.log"
     wrapper:
         f"{git}/bio/tabix"
 
@@ -384,7 +384,7 @@ rule filter_out_frequency:
     input:
         "table/frequency.tsv"
     output:
-        temp("table//filtered/frequency.tsv")
+        temp("table/filtered/frequency.tsv")
     message:
         "Filtering on populaiton frequency on final table"
     threads:
@@ -412,9 +412,9 @@ rule filter_out_frequency:
 
 rule filter_out_vaf:
     input:
-        "table//filtered/frequency.tsv"
+        "table/filtered/frequency.tsv"
     output:
-        temp("table//filtered/vaf.tsv")
+        temp("table/filtered/vaf.tsv")
     message:
         "Filtering on VAF"
     threads:

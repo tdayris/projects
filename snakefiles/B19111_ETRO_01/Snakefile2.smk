@@ -16,8 +16,12 @@ container: "docker://continuumio/miniconda3:5.0.1"
 design = pandas.read_csv(
     "../design.tsv",
     header=0,
-    index_col=0
+    index_col=0,
+    sep="\t"
 )
+
+wildcard_constraints:
+    sample = "|".join(design.index)
 
 rule all:
     input:
@@ -25,10 +29,10 @@ rule all:
     message:
         "Finishing pipeline"
 
-
 rule rename:
     input:
         "/mnt/beegfs/scratch/bioinfo_core/B19111_ETRO_01/annovar/raw_data/{sample}.vcf"
+	# vcf = lambda wildcards: design[design[index == wildcards.sample]]["VCF_File"]
     output:
         "raw_data/{sample}.vcf.gz"
     message:
@@ -42,6 +46,8 @@ rule rename:
         time_min = (
             lambda wildcards, attempt: min(attempt * 5, 200)
         )
+    wildcard_constraints:
+        sample = "|".join(design.index)
     group:
         "prepare"
     conda:
@@ -58,7 +64,7 @@ rule tabix_index:
     input:
         "raw_data/{sample}.vcf.gz"
     output:
-        "raw_data/{sample}.vcf.tbi"
+        "raw_data/{sample}.vcf.gz.tbi"
     message:
         "Indexing {wildcards.sample}"
     threads:
@@ -86,7 +92,7 @@ rule norm_vcf:
     output:
         "bcftools/norm/{sample}.vcf.gz"
     message:
-        "Normalizing {wildcars.sample}"
+        "Normalizing {wildcards.sample}"
     threads:
         2
     resources:

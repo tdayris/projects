@@ -239,7 +239,7 @@ rule compress_bcftools_call:
 
 rule snpeff:
     input:
-        "bcftools/compress/{sample}.vcf"
+        "bcftools/call/{sample}.vcf"
     output:
         calls="snpeff/calls/{sample}.vcf.gz",
         stats="snpeff/report/{sample}.html",

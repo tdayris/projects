@@ -363,7 +363,7 @@ rule variant_frequency:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: attempt * 4096
+            lambda wildcards, attempt: attempt * 4096 + 20480
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
@@ -430,7 +430,7 @@ rule filter_out_frequency:
         "logs/filter/frequency.log"
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}"
-        " {{if ($2 {params.freq}) {{print $0}} }}"
+        " {{if ($2 {params.freq}) {{print $0}} }}'"
         " {input} > {output} 2> {log}"
 
 

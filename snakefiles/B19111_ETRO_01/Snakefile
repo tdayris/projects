@@ -317,7 +317,7 @@ rule add_sample_name:
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}' "
         "{{if (NR==1) {{print \"SAMPLE\" FS $0}} "
-        "else {{print \"{wildcards.sample}\" FS $0}}}}"
+        "else {{print \"{wildcards.sample}\" FS $0}} }} "
         "{input.tsv} > {output.tsv} 2> {log}"
 
 

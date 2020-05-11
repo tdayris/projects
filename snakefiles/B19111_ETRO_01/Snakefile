@@ -442,9 +442,9 @@ rule filter_out_vaf:
 
 rule max_AF:
     input:
-        "tables/filtered/vaf.tsv"
+        tsv = "tables/filtered/vaf.tsv"
     output:
-        temp("tables/filtered/max_af.tsv")
+        tsv = temp("tables/filtered/max_af.tsv")
     message:
         "Computing population's AF max"
     threads:
@@ -466,9 +466,9 @@ rule max_AF:
 
 rule expand_variants:
     input:
-        tsv = "tables/filtered/max_af.tsv"
+        "tables/filtered/max_af.tsv"
     output:
-        tsv = temp("tables/filtered/expanded.tsv")
+        temp("tables/filtered/expanded.tsv")
     message:
         "Expanding variants"
     threads:

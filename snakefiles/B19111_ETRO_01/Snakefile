@@ -460,7 +460,7 @@ rule filter_out_vaf:
         "logs/filter/vaf.log"
     shell:
         "awk 'BEGIN{{FS=\"\\t\"}}"
-        " {{if ($8 {params.vaf}) {{print $0}} }}"
+        " {{if ($8 {params.vaf}) {{print $0}} }}'"
         " {input} > {output} 2> {log}"
 
 

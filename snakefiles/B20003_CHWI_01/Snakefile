@@ -430,11 +430,13 @@ rule snpsift_annotate_ensembl:
         1
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: attempt * 4096
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
+    params:
+        extra = "-Xmx4G"
     log:
         "logs/snpsift_annotate_ensembl/{sample1}_vs_{sample2}/{comp}.log"
     wrapper:

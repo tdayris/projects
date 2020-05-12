@@ -1,6 +1,7 @@
 import sys
 import pandas
 import os.path
+import itertools
 
 from snakemake.utils import min_version, makedirs
 from pathlib import Path
@@ -28,28 +29,24 @@ design = pandas.read_csv(
 design_dict = design.to_dict()
 FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
+C1 = ["S2", "S3", "S10", "S12", "S14", "S15"]
+C2 = ["S3", "S11", "S13"]
+comparisons = [f"{i}_vs_{j}" for i in C1 for j in C2]
+comparisons_prefix = list(
+    itertools.chain(
+        *[[f"{i}_vs_{j}/{i}", f"{i}_vs_{j}/{j}"]
+          for i in C1 for j in C2]
+    )
+)
+status = ["only", "shared"]
 
 wildcard_constraints:
     sample = "|".join(design.index.tolist()),
-    sample1 = "|".join(["S2", "S3", "S10", "S12", "S14", "S15"]),
-    sample2 = "|".join(["S3", "S11", "S13"]),
-    status = "only|shared",
-    main = "|".join(design.index.tolist()),
-    comparisons = "|".join([
-        "S2_vs_S3",
-        "S2_vs_S11",
-        "S2_vs_S13",
-        "S3_vs_S11",
-        "S3_vs_S13",
-        "S10_vs_S11",
-        "S10_vs_S13",
-        "S12_vs_S11",
-        "S12_vs_S13",
-        "S14_vs_S11",
-        "S14_vs_S13",
-        "S15_vs_S11",
-        "S15_vs_S13",
-    ])
+    sample1 = "|".join(C1),
+    sample2 = "|".join(C2),
+    status = "|".join(status),
+    comparisons = "|".join(comparisons)
+    comparisons_prefix = "|".join(comparisons_prefix)
 
 
 rule all:
@@ -57,24 +54,9 @@ rule all:
         calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
         multiqc="qc/multiqc.html",
         intersections = expand(
-            "bcftools/intersect/{comparisons}/{main}_{status}.vcf.gz",
-            main=["S2", "S3", "S11", "S13", "S10", "S14", "S15", "S12"],
-            status=["only", "shared"],
-            comparisons = [
-                "S2_vs_S3",
-                "S2_vs_S11",
-                "S2_vs_S13",
-                "S3_vs_S11",
-                "S3_vs_S13",
-                "S10_vs_S11",
-                "S10_vs_S13",
-                "S12_vs_S11",
-                "S12_vs_S13",
-                "S14_vs_S11",
-                "S14_vs_S13",
-                "S15_vs_S11",
-                "S15_vs_S13",
-            ]
+            "bcftools/intersect/{comparisons_prefix}_{status}.vcf.gz",
+            status=status,
+            comparisons_prefix = comparisons_prefix
         )
     message:
         "Finishing pipeline "

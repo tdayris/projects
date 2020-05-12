@@ -341,7 +341,9 @@ rule bcftools_intersect:
     output:
         expand(
             "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz",
-            isec = lisec
+            isec = lisec,
+	    allow_missing=True
+	)
     message:
         "Comparing {wildcards.sample1} with {wildcards.sample2}"
     threads:
@@ -361,13 +363,14 @@ rule bcftools_intersect:
             "--exclude '(INFO/DP < 10)' "  # FIlter out low coverage
             "--output-type z "  # Output should be in vcf.gz
             "--threads 1 "  # Add one additional thread for compression
-        )
+        ),
+	prefix = "bcftools/intersect/{sample1}_vs_{sample2}"
     log:
         isec = "logs/bcftools/intersect/{sample1}_vs_{sample2}.log"
     shell:
         "bcftools isec "
         " {params.isec} "
-        " --prefix {output} "
+        " --prefix {params.prefix} "
         " {input.left} "
         " {input.right} "
         " > {log.isec} "

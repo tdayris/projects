@@ -35,10 +35,11 @@ comparisons = [f"{i}_vs_{j}" for i in C1 for j in C2]
 comparisons_prefix = list(
     itertools.chain(
         *[[f"{i}_vs_{j}/{i}", f"{i}_vs_{j}/{j}"]
-          for i in C1 for j in C2]
+          for i in C1 for j in C2 if i != j]
     )
 )
 status = ["only", "shared"]
+lisec = [f"000{i}" for i in range(0, 4, 1)]
 
 wildcard_constraints:
     sample = "|".join(design.index.tolist()),
@@ -47,6 +48,7 @@ wildcard_constraints:
     status = "|".join(status),
     comparisons = "|".join(comparisons),
     comparisons_prefix = "|".join(comparisons_prefix)
+    isec = "|".join(lisec)
 
 
 rule all:
@@ -338,10 +340,8 @@ rule bcftools_intersect:
         right_index = "snpeff/calls/{sample2}.vcf.gz.tbi"
     output:
         expand(
-            "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz",
-            isec=["0000", "0001", "0002", "0003"],
-            allow_missing=True
-        )
+            "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz"
+            isec = lisec
     message:
         "Comparing {wildcards.sample1} with {wildcards.sample2}"
     threads:

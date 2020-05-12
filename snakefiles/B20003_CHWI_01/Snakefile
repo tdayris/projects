@@ -41,6 +41,23 @@ comparisons_prefix = list(
 status = ["only", "shared"]
 lisec = [f"000{i}" for i in range(0, 4, 1)]
 
+TSV_fields = [
+    "CHROM",
+    "POS",
+    "REF",
+    "ALT",
+    "GT",
+    "ANN[*].GENE",
+    "ANN[*].EFFECT",
+    "ANN[*].IMPACT",
+    "ANN[*].BIOTYPE",
+    "ANN[*].HGVS_C",
+    "ANN[*].HGVS_P",
+    "ANN[*].CDNA_POS",
+    "DP",
+    "ANN[*].GENEID",
+]
+
 wildcard_constraints:
     sample = "|".join(design.index.tolist()),
     sample1 = "|".join(C1),
@@ -473,7 +490,7 @@ rule compress_annotation:
 
 rule tabix_annotate:
     input:
-        "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
+        "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz"
     output:
         "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
     message:
@@ -500,8 +517,8 @@ rule tabix_annotate:
 
 rule bcftools_stat:
     input:
-        vcf = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz",
-        index = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi",
+        vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz",
+        index = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi",
         fasta = FASTA
     output:
         stats = "bcftools/stats/{sample1}_vs_{sample2}/{comp}.bcftools.stats"
@@ -556,3 +573,36 @@ rule multiqc_post_isec:
         "logs/multiqc.log"
     wrapper:
         f"{git}/bio/multiqc"
+
+
+rule vcf_to_tsv_snpsift:
+    input:
+        vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz",
+        index = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
+    output:
+        tsv = "tables/{sample1}_vs_{sample2}/{comp}.tsv"
+    message:
+        "Converting VCF to TSV"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../biotools.yaml"
+    params:
+        fields = " ".join(TSV_fields)
+        extra = "-e '.' -s ','"
+    log:
+        "logs/vcf_to_tsv_snpsift.log"
+    shell:
+        "SnpSift extractFields "
+        " {params.extra} "
+        " {params.fields} "
+        " {input.vcf} "
+        " > {output.tsv} "
+        " 2> {log}"

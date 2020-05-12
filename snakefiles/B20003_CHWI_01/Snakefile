@@ -54,7 +54,10 @@ wildcard_constraints:
 rule all:
     input:
         calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
-        multiqc="qc/multiqc.html",
+        multiqc=[
+            "qc/multiqc_raw_calls.html",
+            "qc/multiqc_intersections.html"
+        ],
         intersections = expand(
             "snpsift/annotate/{comparisons_prefix}_{status}.vcf.gz",
             status=status,
@@ -290,7 +293,7 @@ rule multiqc:
         expand("snpeff/stats/{sample}.csv", sample=design.index),
         expand("snpeff/report/{sample}.html", sample=design.index)
     output:
-        "qc/multiqc.html"
+        "qc/multiqc_raw_calls.html"
     message:
         "Compiling qc metrics"
     threads:
@@ -433,3 +436,88 @@ rule snpsift_annotate_ensembl:
         "logs/snpsift_annotate_ensembl/{sample1}_vs_{sample2}/{comp}.log"
     wrapper:
         f"{git}/bio/snpsift/annotate"
+
+
+rule tabix_snpeff:
+    input:
+        "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
+    output:
+        "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
+    message:
+        "Indexing snpeff result for {wildcards.sample1} vs "
+        "{wildcards.sample2} ({wildcards.comp})"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        '-p vcf'
+    log:
+        "logs/tabix/snpeff/annotate/{sample1}_vs_{sample2}/{comp}.log"
+    wrapper:
+        f"{git}/bio/tabix"
+
+
+rule bcftools_stat:
+    input:
+        vcf = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
+        index = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi",
+        fasta = FASTA
+    output:
+        stats = "bcftools/stats/{sample1}_vs_{sample2}_{comp}.bcftools.stats"
+    message:
+        "Compiling statistics over {wildcards.sample1} vs"
+        " {wildcards.sample2} ({wildcards.comp})"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        ""
+    log:
+        "logs/bcftools_stat/{sample1}_vs_{sample2}/{comp}.log"
+    conda:
+        "../../envs/biotools.yaml"
+    shell:
+        "bcftools stats "
+        " {params} "
+        " --fasta-ref {input.fasta} "
+        " {input.vcf} "
+        " > {output.stats} "
+        " 2> {log}"
+
+
+rule multiqc:
+    input:
+        expand(
+            "bcftools/stats/{comparisons_prefix}_{status}.bcftools.stats",
+            status=status,
+            comparisons_prefix = comparisons_prefix
+        )
+    output:
+        "qc/multiqc_intersections.html"
+    message:
+        "Compiling qc metrics"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        f"{git}/bio/multiqc"

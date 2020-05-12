@@ -362,6 +362,6 @@ rule bcftools_intersect:
         " {params.isec} "
         " {input.left} "
         " {input.right} "
-        " --output {output} "
+        " --prefix {output} "
         " > {log.isec} "
         " 2>&1 "

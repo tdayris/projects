@@ -45,7 +45,7 @@ wildcard_constraints:
     sample1 = "|".join(C1),
     sample2 = "|".join(C2),
     status = "|".join(status),
-    comparisons = "|".join(comparisons)
+    comparisons = "|".join(comparisons),
     comparisons_prefix = "|".join(comparisons_prefix)
 
 

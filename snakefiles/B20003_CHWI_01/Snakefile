@@ -44,7 +44,7 @@ wildcard_constraints:
     sample = "|".join(design.index.tolist()),
     sample1 = "|".join(C1),
     sample2 = "|".join(C2),
-    status = "|".join(status),
+    status = "|".join(statrenamedus),
     comparisons = "|".join(comparisons)
     comparisons_prefix = "|".join(comparisons_prefix)
 
@@ -381,10 +381,10 @@ rule bcftools_isec_rename:
         s1 = "bcftools/intersect/{sample1}_vs_{sample2}/0002.vcf.gz",
         s2 = "bcftools/intersect/{sample1}_vs_{sample2}/0003.vcf.gz"
     output:
-        s1_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample1}_only.vcf.gz",
-        s2_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample2}_only.vcf.gz",
-        s1 = "bcftools/intersect/{sample1}_vs_{sample2}/{sample1}_shared.vcf.gz",
-        s2 = "bcftools/intersect/{sample1}_vs_{sample2}/{sample2}_shared.vcf.gz"
+        s1_only = "bcftools/renamed/{sample1}_vs_{sample2}/{sample1}_only.vcf.gz",
+        s2_only = "bcftools/renamed/{sample1}_vs_{sample2}/{sample2}_only.vcf.gz",
+        s1 = "bcftools/renamed/{sample1}_vs_{sample2}/{sample1}_shared.vcf.gz",
+        s2 = "bcftools/renamed/{sample1}_vs_{sample2}/{sample2}_shared.vcf.gz"
     message:
         "Renaming intersections for {wildcards.sample1} vs {wildcards.sample2}"
     threads:

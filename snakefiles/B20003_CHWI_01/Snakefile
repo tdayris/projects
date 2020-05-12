@@ -38,7 +38,7 @@ rule all:
         calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
         multiqc="qc/multiqc.html",
         intersections = expand(
-            "bcftools/compare/{comparisons}.intersect.vcf.gz",
+            "bcftools/intersect/{comparisons}",
             comparisons = [
                 "S2_vs_S3",
                 "S2_vs_S11",
@@ -334,7 +334,7 @@ rule bcftools_intersect:
         left_index = "snpeff/calls/{sample1}.vcf.gz.tbi",
         right_index = "snpeff/calls/{sample1}.vcf.gz.tbi"
     output:
-        "bcftools/compare/{sample1}_vs_{sample2}.intersect.vcf.gz"
+        directory("bcftools/intersect/{sample1}_vs_{sample2}")
     message:
         "Comparing {wildcards.sample1} with {wildcards.sample2}"
     threads:
@@ -349,11 +349,14 @@ rule bcftools_intersect:
     conda:
         "../../envs/biotools.yaml"
     params:
-        isec = "--collapse none --exclude '(INFO/DP < 10)' --output-type z --threads 1"#,
-        # filter = "--exclude '(INFO/DP < 10)' --output-type z --threads 1"
+        isec = (
+            "--collapse none "  # Do collapse only if REF AND ALT are equals
+            "--exclude '(INFO/DP < 10)' "  # FIlter out low coverage
+            "--output-type z "  # Output should be in vcf.gz
+            "--threads 1 "  # Add one additional thread for compression
+        )
     log:
-        isec = "logs/bcftools/intersect/{sample1}_vs_{sample2}.log",
-        #filter = "logs/bcftools/filter/{sample1}_vs_{sample2}.log"
+        isec = "logs/bcftools/intersect/{sample1}_vs_{sample2}.log"
     shell:
         "bcftools isec "
         " {params.isec} "
@@ -362,16 +365,3 @@ rule bcftools_intersect:
         " --output {output} "
         " > {log.isec} "
         " 2>&1 "
-
-
-        # "bcftools isec "
-        # " {params.isec} "
-        # " {input.left} "
-        # " {input.right} "
-        # " 2> {log.isec} "
-        # " | "
-        # " bcftools filter "
-        # " {params.filter} "
-        # " --output {output} "
-        # " > {log.filter} "
-        # " 2>&1 "

@@ -47,7 +47,7 @@ wildcard_constraints:
     sample2 = "|".join(C2),
     status = "|".join(status),
     comparisons = "|".join(comparisons),
-    comparisons_prefix = "|".join(comparisons_prefix)
+    comparisons_prefix = "|".join(comparisons_prefix),
     isec = "|".join(lisec)
 
 
@@ -340,7 +340,7 @@ rule bcftools_intersect:
         right_index = "snpeff/calls/{sample2}.vcf.gz.tbi"
     output:
         expand(
-            "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz"
+            "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz",
             isec = lisec
     message:
         "Comparing {wildcards.sample1} with {wildcards.sample2}"

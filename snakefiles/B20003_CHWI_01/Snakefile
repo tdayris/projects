@@ -59,7 +59,7 @@ rule all:
         intersections = expand(
             "bcftools/intersect/{comparisons}/{main}_{status}.vcf.gz",
             main=["S2", "S3", "S11", "S13", "S10", "S14", "S15", "S12"],
-            status=["only", "shared"]
+            status=["only", "shared"],
             comparisons = [
                 "S2_vs_S3",
                 "S2_vs_S11",

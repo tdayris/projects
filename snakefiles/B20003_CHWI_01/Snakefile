@@ -360,8 +360,8 @@ rule bcftools_intersect:
     shell:
         "bcftools isec "
         " {params.isec} "
+        " --prefix {output} "
         " {input.left} "
         " {input.right} "
-        " --prefix {output} "
         " > {log.isec} "
         " 2>&1 "

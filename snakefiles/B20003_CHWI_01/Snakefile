@@ -396,8 +396,8 @@ rule bcftools_isec_rename:
     input:
         s1_only = "bcftools/intersect/{sample1}_vs_{sample2}/0000.vcf.gz",
         s2_only = "bcftools/intersect/{sample1}_vs_{sample2}/0001.vcf.gz",
-        s1 = "bcftools/intersect/{sample1}_vs_{sample2}/0003.vcf.gz",
-        s2 = "bcftools/intersect/{sample1}_vs_{sample2}/0004.vcf.gz"
+        s1 = "bcftools/intersect/{sample1}_vs_{sample2}/0002.vcf.gz",
+        s2 = "bcftools/intersect/{sample1}_vs_{sample2}/0003.vcf.gz"
     output:
         s1_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample1}_only.vcf.gz",
         s2_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample2}_only.vcf.gz",

@@ -420,7 +420,7 @@ rule bcftools_isec_rename:
 
 rule snpsift_annotate_ensembl:
     input:
-        vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz"
+        vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz",
         database = "resources/Mus_musculus.vcf.gz"
     output:
         vcf = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
@@ -441,7 +441,7 @@ rule snpsift_annotate_ensembl:
         f"{git}/bio/snpsift/annotate"
 
 
-rule tabix_snpeff:
+rule tabix_annotate:
     input:
         "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
     output:
@@ -468,11 +468,11 @@ rule tabix_snpeff:
 
 rule bcftools_stat:
     input:
-        vcf = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz"
+        vcf = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz",
         index = "snpsift/annotate/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi",
         fasta = FASTA
     output:
-        stats = "bcftools/stats/{sample1}_vs_{sample2}_{comp}.bcftools.stats"
+        stats = "bcftools/stats/{sample1}_vs_{sample2}/{comp}.bcftools.stats"
     message:
         "Compiling statistics over {wildcards.sample1} vs"
         " {wildcards.sample2} ({wildcards.comp})"
@@ -500,7 +500,7 @@ rule bcftools_stat:
         " 2> {log}"
 
 
-rule multiqc:
+rule multiqc_post_isec:
     input:
         expand(
             "bcftools/stats/{comparisons_prefix}_{status}.bcftools.stats",

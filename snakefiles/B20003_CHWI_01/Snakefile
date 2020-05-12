@@ -30,11 +30,11 @@ FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
 
 wildcard_constraints:
-    sample = "|".join(design.index.tolist())
-    sample1 = "|".join(["S2", "S3", "S10", "S12", "S14", "S15"])
-    sample2 = "|".join(["S3", "S11", "S13"])
-    status = "only|shared"
-    main = "|".join(design.index.tolist())
+    sample = "|".join(design.index.tolist()),
+    sample1 = "|".join(["S2", "S3", "S10", "S12", "S14", "S15"]),
+    sample2 = "|".join(["S3", "S11", "S13"]),
+    status = "only|shared",
+    main = "|".join(design.index.tolist()),
     comparisons = "|".join([
         "S2_vs_S3",
         "S2_vs_S11",

@@ -54,7 +54,7 @@ rule all:
         calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
         multiqc="qc/multiqc.html",
         intersections = expand(
-            "bcftools/intersect/{comparisons_prefix}_{status}.vcf.gz",
+            "bcftools/renamed/{comparisons_prefix}_{status}.vcf.gz",
             status=status,
             comparisons_prefix = comparisons_prefix
         )

@@ -332,7 +332,7 @@ rule bcftools_intersect:
         left = "snpeff/calls/{sample1}.vcf.gz",
         right = "snpeff/calls/{sample2}.vcf.gz",
         left_index = "snpeff/calls/{sample1}.vcf.gz.tbi",
-        right_index = "snpeff/calls/{sample1}.vcf.gz.tbi"
+        right_index = "snpeff/calls/{sample2}.vcf.gz.tbi"
     output:
         directory("bcftools/intersect/{sample1}_vs_{sample2}")
     message:

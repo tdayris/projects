@@ -26,7 +26,6 @@ design = pandas.read_csv(
 )
 
 design_dict = design.to_dict()
-print(design_dict)
 FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
 
@@ -323,7 +322,7 @@ rule tabix_snpeff:
     params:
         '-p vcf'
     log:
-        "logs/tabix_snpeff.log"
+        "logs/tabix/snpeff_{sample}.log"
     wrapper:
         f"{git}/bio/tabix"
 

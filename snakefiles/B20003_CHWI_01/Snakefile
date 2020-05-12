@@ -31,6 +31,25 @@ FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
 wildcard_constraints:
     sample = "|".join(design.index.tolist())
+    sample1 = "|".join(["S2", "S3", "S10", "S12", "S14", "S15"])
+    sample2 = "|".join(["S3", "S11", "S13"])
+    status = "only|shared"
+    main = "|".join(design.index.tolist())
+    comparisons = "|".join([
+        "S2_vs_S3",
+        "S2_vs_S11",
+        "S2_vs_S13",
+        "S3_vs_S11",
+        "S3_vs_S13",
+        "S10_vs_S11",
+        "S10_vs_S13",
+        "S12_vs_S11",
+        "S12_vs_S13",
+        "S14_vs_S11",
+        "S14_vs_S13",
+        "S15_vs_S11",
+        "S15_vs_S13",
+    ])
 
 
 rule all:
@@ -38,7 +57,9 @@ rule all:
         calls=expand("snpeff/calls/{sample}.vcf.gz", sample=design.index),
         multiqc="qc/multiqc.html",
         intersections = expand(
-            "bcftools/intersect/{comparisons}",
+            "bcftools/intersect/{comparisons}/{main}_{status}.vcf.gz",
+            main=["S2", "S3", "S11", "S13", "S10", "S14", "S15", "S12"],
+            status=["only", "shared"]
             comparisons = [
                 "S2_vs_S3",
                 "S2_vs_S11",
@@ -49,8 +70,8 @@ rule all:
                 "S10_vs_S13",
                 "S12_vs_S11",
                 "S12_vs_S13",
-                "S15_vs_S11",
-                "S15_vs_S13",
+                "S14_vs_S11",
+                "S14_vs_S13",
                 "S15_vs_S11",
                 "S15_vs_S13",
             ]
@@ -334,7 +355,11 @@ rule bcftools_intersect:
         left_index = "snpeff/calls/{sample1}.vcf.gz.tbi",
         right_index = "snpeff/calls/{sample2}.vcf.gz.tbi"
     output:
-        directory("bcftools/intersect/{sample1}_vs_{sample2}")
+        expand(
+            "bcftools/intersect/{sample1}_vs_{sample2}/{isec}.vcf.gz",
+            isec=["0000", "0001", "0002", "0003"],
+            allow_missing=True
+        )
     message:
         "Comparing {wildcards.sample1} with {wildcards.sample2}"
     threads:
@@ -365,3 +390,41 @@ rule bcftools_intersect:
         " {input.right} "
         " > {log.isec} "
         " 2>&1 "
+
+
+rule bcftools_isec_rename:
+    input:
+        s1_only = "bcftools/intersect/{sample1}_vs_{sample2}/0000.vcf.gz",
+        s2_only = "bcftools/intersect/{sample1}_vs_{sample2}/0001.vcf.gz",
+        s1 = "bcftools/intersect/{sample1}_vs_{sample2}/0003.vcf.gz",
+        s2 = "bcftools/intersect/{sample1}_vs_{sample2}/0004.vcf.gz"
+    output:
+        s1_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample1}_only.vcf.gz",
+        s2_only = "bcftools/intersect/{sample1}_vs_{sample2}/{sample2}_only.vcf.gz",
+        s1 = "bcftools/intersect/{sample1}_vs_{sample2}/{sample1}_shared.vcf.gz",
+        s2 = "bcftools/intersect/{sample1}_vs_{sample2}/{sample2}_shared.vcf.gz"
+    message:
+        "Renaming intersections for {wildcards.sample1} vs {wildcards.sample2}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    params:
+        "--verbose"
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        s1_only = "logs/bcftools/isec_rename/{sample1}_{sample2}_s1_only.log",
+        s2_only = "logs/bcftools/isec_rename/{sample1}_{sample2}_s2_only.log",
+        s1 = "logs/bcftools/isec_rename/{sample1}_{sample2}_s1_shared.log",
+        s2 = "logs/bcftools/isec_rename/{sample1}_{sample2}_s2_shared.log"
+    shell:
+        "mv {params} {input.s1_only} {output.s1_only} > {log.s1_only} 2>&1 && "
+        "mv {params} {input.s2_only} {output.s2_only} > {log.s1_only} 2>&1 && "
+        "mv {params} {input.s1} {output.s1} > {log.s1} 2>&1 && "
+        "mv {params} {input.s2} {output.s2} > {log.s2} 2>&1 "

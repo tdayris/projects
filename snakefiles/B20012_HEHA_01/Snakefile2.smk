@@ -31,9 +31,37 @@ sample_constraint = "|".join(SAMPLES)
 
 rule all:
     input:
-        quantiseq = "quanTIseq/results"
+        quantiseq = "quanTIseq/quanTIseq_cell_fractions.txt",
+        hist = "quanTIseq/cell_fraction_dotplot.png",
+        dots = "quanTIseq/cell_fraction_histogram.png"
     message:
         "Finishing pipeline "
+
+
+rule copy_quantiseq_image:
+    input:
+        "/mnt/beegfs/userdata/t_dayris/devs/quantiseq2.img"
+    output:
+        "quantiseq2.img"
+    message:
+        "Copying the quanTIseq image"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    params:
+        "--verbose"
+    log:
+        "logs/quanTIseq/copy_quantiseq_image.log"
+    shell:
+        "cp {params} {input} {output} > {log} 2>&1"
 
 
 
@@ -67,49 +95,53 @@ rule filter_quant:
         "| grep -vP \"^\\t\")"
         "> {output} 2> {log}"
 
-rule quanTIseq_pipeline:
+
+rule run_quanTIseq:
     input:
-        "immunedeconv/TPM.tsv"
+        counts = "immunedeconv/TPM.tsv",
+        img = "quantiseq2.img"
     output:
-        directory("quanTIseq/results")
+        "quanTIseq/quanTIseq_cell_fractions.txt"
     message:
-        "Performing quanTIseq estimation"
+        "Estimating immune cell fraction"
     threads:
         10
     resources:
         mem_mb = (
-            lambda wildcards, attempt: min(attempt * 1024, 10240)
+            lambda wildcards, attempt: min(attempt * 512, 4096)
         ),
         time_min = (
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
         "../../envs/immunedeconv.yaml"
+    log:
+        "logs/quanTIseq/run.log"
     params:
+        outdir = "quanTIseq",
         path = "/mnt/beegfs/userdata/t_dayris/projects",
         extra = (
             "--pipelinestart=decon "
             "--tumor=TRUE "
             "--mRNAscale=TRUE "
         )
-    log:
-        "logs/quanTIseq_pipeline.log"
     shell:
         "{params.path}/scripts/quanTIseq_pipeline.sh "
-        "--inputfile={input} "
-        "--outputdir={output} "
-        "--threads={threads} "
-        "{params.extra} "
-        "> {log} 2>&1"
+        " --inputfile={input.counts} "
+        " --outputdir={params.outdir} "
+        " --threads={threads} "
+        " {params.extra} "
+        " > {log} 2>&1 "
 
 
-rule quanTIseq_deconv:
+rule plot_quantiseq:
     input:
-        quant = "immunedeconv/TPM.tsv"
+        fraction = "quanTIseq/quanTIseq_cell_fractions.txt"
     output:
-        rds = "immunedeconv/quantiseq.RDS"
+        dotplots = "quanTIseq/cell_fraction_dotplot.png",
+        histogram = "quanTIseq/cell_fraction_histogram.png"
     message:
-        "Performing quantiseq"
+        "Plotting immune cell fraction"
     threads:
         1
     resources:
@@ -120,8 +152,8 @@ rule quanTIseq_deconv:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
-        "envs/immunedeconv.yaml"
+        "../../envs/immunedeconv.yaml"
     log:
-        "logs/quanTIseq.log"
+        "logs/quanTIseq/plot.log"
     script:
-        "../../scripts/immunedeconv_quantiseq.R"
+        "../../scripts/quanTIseq_plot.R"

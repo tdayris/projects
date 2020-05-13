@@ -76,7 +76,7 @@ rule all:
             "qc/multiqc_intersections.html"
         ],
         intersections = expand(
-            "snpsift/annotate/{comparisons_prefix}_{status}.vcf.gz",
+            "tables/{comparisons_prefix}_{status}.tsv",
             status=status,
             comparisons_prefix = comparisons_prefix
         )
@@ -578,7 +578,7 @@ rule multiqc_post_isec:
 rule vcf_to_tsv_snpsift:
     input:
         vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz",
-        index = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
+        # index = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
     output:
         tsv = "tables/{sample1}_vs_{sample2}/{comp}.tsv"
     message:
@@ -593,16 +593,16 @@ rule vcf_to_tsv_snpsift:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
-        "../../biotools.yaml"
+        "../../envs/biotools.yaml"
     params:
-        fields = " ".join(TSV_fields)
+        fields = " ".join(TSV_fields),
         extra = "-e '.' -s ','"
     log:
-        "logs/vcf_to_tsv_snpsift.log"
+        "logs/snpsift/table/{sample1}_{sample2}/{comp}.log"
     shell:
         "SnpSift extractFields "
-        " {params.extra} "
+	" {params.extra} "
+	" {input.vcf} "
         " {params.fields} "
-        " {input.vcf} "
         " > {output.tsv} "
         " 2> {log}"

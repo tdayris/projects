@@ -28,6 +28,7 @@ design = pandas.read_csv(
 
 design_dict = design.to_dict()
 FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
+report: "general.rst"
 
 C1 = ["S2", "S3", "S10", "S12", "S14", "S15"]
 C2 = ["S3", "S11", "S13"]
@@ -309,8 +310,12 @@ rule multiqc:
     input:
         expand("snpeff/stats/{sample}.csv", sample=design.index),
         expand("snpeff/report/{sample}.html", sample=design.index)
-    output:
-        "qc/multiqc_raw_calls.html"
+    output
+        report(:
+            "qc/multiqc_raw_calls.html",
+            caption="../../reports/MultiQC.report.rst",
+            category="Quality Reports"
+        )
     message:
         "Compiling qc metrics"
     threads:
@@ -557,7 +562,11 @@ rule multiqc_post_isec:
             comparisons_prefix = comparisons_prefix
         )
     output:
-        "qc/multiqc_intersections.html"
+        report(
+            "qc/multiqc_intersections.html",
+            caption="../../reports/MultiQC.report.rst",
+            category="Quality Reports"
+        )
     message:
         "Compiling qc metrics"
     threads:
@@ -601,8 +610,8 @@ rule vcf_to_tsv_snpsift:
         "logs/snpsift/table/{sample1}_{sample2}/{comp}.log"
     shell:
         "SnpSift extractFields "
-	" {params.extra} "
-	" {input.vcf} "
+    	" {params.extra} "
+    	" {input.vcf} "
         " {params.fields} "
         " > {output.tsv} "
         " 2> {log}"

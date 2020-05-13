@@ -9,9 +9,8 @@ from typing import Any, Dict
 if sys.version_info < (3, 8):
     raise SystemError("Please use Python 3.8 or later")
 
-min_version('5.13.0')
-wrapper_version = '0.50.4'
-git = "https://raw.githubusercontent.com/tdayris-perso/snakemake-wrappers"
+min_version('5.16.0')
+git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers.Unofficial"
 containers: "docker://continuumio/miniconda3:5.0.1"
 
 design_path = Path("design.tsv")
@@ -73,7 +72,7 @@ rule fastqc:
     log:
         "logs/fastqc/{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/fastqc"
+        f"{git}/bio/fastqc"
 
 
 rule multiqc:
@@ -107,7 +106,7 @@ rule multiqc:
     log:
         "logs/multiqc.log"
     wrapper:
-        f"{wrapper_version}/bio/multiqc"
+        f"{git}/bio/multiqc"
 
 
 rule download_fasta_cdna:
@@ -132,7 +131,7 @@ rule download_fasta_cdna:
     log:
         "logs/ensembl_annotation/homo_sapiens_cdna_patch.log"
     wrapper:
-        f"{wrapper_version}/bio/reference/ensembl-sequence"
+        f"{git}/bio/reference/ensembl-sequence"
 
 
 rule correct_cdna_patch:
@@ -182,7 +181,7 @@ rule download_gtf:
     log:
         "logs/ensembl_annotation/homo_sapiens_gtf.log"
     wrapper:
-        f"{wrapper_version}/bio/reference/ensembl-annotation"
+        f"{git}/bio/reference/ensembl-annotation"
 
 
 # TODO: Add to all:
@@ -209,7 +208,7 @@ rule salmon_index:
     log:
         "logs/salmon/index_homo_sapiens.log"
     wrapper:
-        f"{wrapper_version}/bio/salmon/index"
+        f"{git}/bio/salmon/index"
 
 
 def salmon_sample_pair_w(wildcards: Any) -> Dict[str, str]:
@@ -243,7 +242,7 @@ rule salmon_quant:
     log:
         "logs/salmon/quant/homo_sapiens_{sample}.log"
     wrapper:
-        f"{wrapper_version}/bio/salmon/quant"
+        f"{git}/bio/salmon/quant"
 
 
 rule tx2gene:
@@ -349,3 +348,135 @@ rule pairwise_scatterplot:
         "logs/pairwise_scatterplot.log"
     wrapper:
         f"{git}/pandas-merge/bio/seaborn/pairwise-scatterplot"
+
+
+rule copy_quantiseq_image:
+    input:
+        "/mnt/beegfs/userdata/t_dayris/devs/quantiseq2.img"
+    output:
+        "quantiseq2.img"
+    message:
+        "Copying the quanTIseq image"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    params:
+        "--verbose"
+    log:
+        "logs/quanTIseq/copy_quantiseq_image.log"
+    shell:
+        "cp {params} {input} {output} > {log} 2>&1"
+
+
+rule filter_counts:
+    input:
+        "salmon/aggregated/TPM.counts.tsv"
+    output:
+        "quanTIseq/TPM.tsv"
+    message:
+        "Filtering counts for quanTIseq"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: attempt * 4096
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    log:
+        "logs/quanTIseq/filter_counts.log"
+    shell:
+        "awk ' "
+        " BEGIN {{FS=\"\\t\"}} "
+        " {{ "
+        " if (NR == 1) "
+        " {{ "
+        " print 'GENE' 'MR254-T1' 'MR263-T1' 'MR263-T2' 'MR275-T1' "
+        "'MR275_RE-T2' 'MR307-T1' 'MR307-T2' 'MR307-T2' 'MR314-T1' "
+        "'MR314-T2' 'MR316-T1' 'MR316-T2' 'MR334-T1' 'MR334-T2' "
+        "'MR338-T1' 'MR338-T2' 'MR360-T1' 'MR360-T2'"
+        " }} "
+        " else "
+        " {{ "
+        " print $18 $1 $2 $3 $4 $5 $6 $7 $8 "
+        " $9 $10 $11 $12 $13 $14 $15 $16 $17 "
+        " }} "
+        " }}"
+        " ' "
+        " {input} "
+        " > {output} "
+        " 2> {log} "
+
+
+rule run_quanTIseq:
+    input:
+        counts = "quanTIseq/TPM.tsv",
+        img = "quantiseq2.img"
+    output:
+        "quanTIseq/quanTIseq_cell_fractions.txt"
+    message:
+        "Estimating immune cell fraction"
+    threads:
+        10
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 512, 4096)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/immunedeconv.yaml"
+    log:
+        "logs/quanTIseq/run.log"
+    params:
+        outdir = "quanTIseq",
+        path = "/mnt/beegfs/userdata/t_dayris/projects",
+        extra = (
+            "--pipelinestart=decon "
+            "--tumor=TRUE "
+            "--mRNAscale=TRUE "
+        )
+    shell:
+        "{params.path}/scripts/quanTIseq_pipeline.sh "
+        " --inputfile={input.counts} "
+        " --outputdir={params.outdir} "
+        " --threads={threads} "
+        " {params.extra} "
+        " > {log} 2>&1 "
+
+
+rule plot_quantiseq:
+    input:
+        fraction = "quanTIseq/quanTIseq_cell_fractions.txt"
+    output:
+        dotplots = "quanTIseq/cell_fraction_dotplot.png",
+        histogram = "quanTIseq/cell_fraction_histogram.png"
+    message:
+        "Plotting immune cell fraction"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/immunedeconv.yaml"
+    log:
+        "logs/quanTIseq/plot.log"
+    script:
+        "../../scripts/quanTIseq_plot.R"

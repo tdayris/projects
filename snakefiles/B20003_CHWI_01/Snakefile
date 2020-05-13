@@ -589,7 +589,11 @@ rule vcf_to_tsv_snpsift:
         vcf = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz",
         # index = "bcftools/renamed/{sample1}_vs_{sample2}/{comp}.vcf.gz.tbi"
     output:
-        tsv = "tables/{sample1}_vs_{sample2}/{comp}.tsv"
+        tsv = report(
+            "tables/{sample1}_vs_{sample2}/{comp}.tsv",
+            caption="tsv.rst",
+            category="Results"
+        )
     message:
         "Converting VCF to TSV"
     threads:

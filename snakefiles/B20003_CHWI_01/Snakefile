@@ -310,8 +310,8 @@ rule multiqc:
     input:
         expand("snpeff/stats/{sample}.csv", sample=design.index),
         expand("snpeff/report/{sample}.html", sample=design.index)
-    output
-        report(:
+    output:
+        report(
             "qc/multiqc_raw_calls.html",
             caption="../../reports/MultiQC.report.rst",
             category="Quality Reports"

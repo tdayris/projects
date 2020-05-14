@@ -27,7 +27,7 @@ wildcard_constraints:
 rule all:
     input:
         baseline = "bcftool/isec/baseline.vcf.gz",
-        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
+        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
         comparison = expand(
             "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}.vcf.gz",
             nb = nb,
@@ -42,7 +42,7 @@ rule compression:
         vcf = "bcftools/call/{samples}.vcf"
     output:
         vcf = "bcftools/compress/{samples}.vcf.gz",
-        index = "bcftools/compress/{samples}.vcf.tbi"
+        index = "bcftools/compress/{samples}.vcf.gz.tbi"
     message:
         "Comprssing and indexing {wildcards.samples}"
     threads:
@@ -102,10 +102,10 @@ rule define_base:
             " -n '-1' "
         )
     shell:
-        " bcftools "
+        " bcftools isec "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
         " > {output.baseline} "
         " 2> {log} "
 
@@ -114,7 +114,7 @@ rule define_no_prolif:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
@@ -146,13 +146,13 @@ rule define_no_prolif:
             " -n '~0011' "
         )
     shell:
-        " bcftools "
+        " bcftools isec "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
         " {input.S10} "
         " {input.S11} "
-        " > {output.baseline} "
+        " > {output.no_prolif} "
         " 2> {log} "
 
 
@@ -162,11 +162,11 @@ rule bcftools_isec:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
-        S11_index = "bcftools/compress/S11.vcf.gz.tbi"
+        S11_index = "bcftools/compress/S11.vcf.gz.tbi",
         SXX = "bcftools/compress/{sample}.vcf.gz",
         SXX_index = "bcftools/compress/{sample}.vcf.gz.tbi"
     output:
@@ -188,7 +188,7 @@ rule bcftools_isec:
             lambda wildcards, attempt: attempt * 15
         )
     log:
-        "logs/bcftools/isec/baseline.log"
+        "logs/bcftools/isec/{sample}.log"
     conda:
         "../../envs/biotools.yaml"
     params:
@@ -198,11 +198,15 @@ rule bcftools_isec:
             " --output-type z "
             " --threads 1 "
             " --prefix bcftool/isec/JAK2_vs_JAK2_SRSF2/ "
+	    " -n '~00001'"
         )
     shell:
-        " bcftools "
+        " bcftools isec "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
+	" {input.S10} "
+        " {input.S11} "
+        " {input.SXX} "
         " > {log} "
         " 2>&1 "

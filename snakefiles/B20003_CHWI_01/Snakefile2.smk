@@ -115,7 +115,7 @@ rule define_base:
             " -n '-1' "
         )
     shell:
-        " bcftools "
+        " bcftool isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
@@ -187,7 +187,7 @@ rule define_no_prolif:
             " -n '~0011' "
         )
     shell:
-        " bcftools "
+        " bcftool isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
@@ -267,7 +267,7 @@ rule bcftools_isec:
             " --prefix bcftool/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
         )
     shell:
-        " bcftools "
+        " bcftool isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "

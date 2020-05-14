@@ -460,7 +460,7 @@ rule prolif_common:
     shell:
         " bcftools isec "
         " {params.isec} "
-        " {input} "
+        " {input.vcf} "
         " > {output} "
         " 2> {log} "
 

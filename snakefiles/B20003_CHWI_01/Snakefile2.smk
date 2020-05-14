@@ -417,7 +417,7 @@ rule tabix_sample_only:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     log:
-        "logs/tabix_sample_only.log"
+        "logs/tabix_sample_only/{sample}.log"
     wrapper:
         f"{git}/bio/tabix"
 

@@ -13,17 +13,61 @@ min_version('5.16.0')
 git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
 singularity: "docker://continuumio/miniconda3:5.0.1"
 
+nb = [f"000{n}" for n in range(0, 5, 1)]
+sample = ["S10", "S12", "S14", "S15"]
+samples = ["S2", "S3", "S11", "S13"] + sample
+
+
+wildcard_constraints:
+    sample = "|".join(sample),
+    nb = "|".join(nb),
+    samples = "|".join(samples)
+
+
 rule all:
     input:
         baseline = "bcftool/isec/baseline.vcf.gz",
-        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
+        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
         comparison = expand(
-            "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}",
-            nb = [f"000{n}" for n in range(0, 5, 1)],
-            sample = ["S10", "S12", "S14", "S15"]
+            "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}.vcf.gz",
+            nb = nb,
+            sample = sample
         )
     message:
         "Finishing pipeline"
+
+
+rule compression:
+    input:
+        vcf = "bcftools/call/{samples}.vcf"
+    output:
+        vcf = "bcftools/compress/{samples}.vcf.gz",
+        index = "bcftools/compress/{samples}.vcf.tbi"
+    message:
+        "Comprssing and indexing {wildcards.samples}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/biotools.yaml"
+    params:
+        bgzip = "-c",
+        tabix = "-p vcf"
+    log:
+        compress = "logs/bgzip/bcftools_call_{samples}.log",
+        tabix = "logs/tabix/bcftools_call_{samples}.log"
+    shell:
+        " bgzip {params.bgzip} {input.vcf} "
+        " > {output.vcf} 2> {log.compress} "
+        " && "
+        " tabix {params.tabix} {output.vcf} "
+        " > {log.tabix} 2>&1 "
 
 
 rule define_base:
@@ -70,7 +114,7 @@ rule define_no_prolif:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
@@ -118,17 +162,17 @@ rule bcftools_isec:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
-        S11_index = "bcftools/compress/S11.vcf.gz.tbi",
+        S11_index = "bcftools/compress/S11.vcf.gz.tbi"
         SXX = "bcftools/compress/{sample}.vcf.gz",
         SXX_index = "bcftools/compress/{sample}.vcf.gz.tbi"
     output:
         comparison = expand(
-            "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}",
-            nb = [f"000{n}" for n in range(0, 5, 1)],
+            "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}.vcf.gz",
+            nb = nb,
             allow_missing = True
         )
     message:
@@ -144,7 +188,7 @@ rule bcftools_isec:
             lambda wildcards, attempt: attempt * 15
         )
     log:
-        "logs/bcftools/isec/compare_{sample}.log"
+        "logs/bcftools/isec/baseline.log"
     conda:
         "../../envs/biotools.yaml"
     params:

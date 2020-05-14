@@ -466,7 +466,7 @@ rule prolif_common:
     output:
         expand(
             "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{nb}.vcf.gz",
-            nb = nb
+            nb = [f"000{i}" for i in range(1, 4, 1)]
         )
     message:
         "Finding common variants among samples with a proliferation relapse"
@@ -496,8 +496,8 @@ rule prolif_common:
         " bcftools isec "
         " {params.isec} "
         " {input.vcf} "
-        " > {output} "
-        " 2> {log} "
+        " > {log} "
+        " 2>&1 "
 
 
 rule rename_commons:
@@ -505,12 +505,12 @@ rule rename_commons:
         i1 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0001.vcf.gz",
         i2 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0002.vcf.gz",
         i3 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0003.vcf.gz",
-        i4 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0004.vcf.gz"
+        # i4 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0004.vcf.gz"
     output:
         o1 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S10.vcf.gz",
         o2 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S12.vcf.gz",
         o3 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S14.vcf.gz",
-        o4 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S15.vcf.gz"
+        # o4 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S15.vcf.gz"
     message:
         "Renaming common searched within JAK2 SRSF2"
     threads:
@@ -534,8 +534,8 @@ rule rename_commons:
     shell:
         " cp {params} {input.i1} {output.o1} > {log} 2>&1 && "
         " cp {params} {input.i2} {output.o2} > {log} 2>&1 && "
-        " cp {params} {input.i3} {output.o3} > {log} 2>&1 && "
-        " cp {params} {input.i4} {output.o4} > {log} 2>&1 "
+        " cp {params} {input.i3} {output.o3} > {log} 2>&1 "# && "
+        # " cp {params} {input.i4} {output.o4} > {log} 2>&1 "
 
 
 rule snpeff_common:

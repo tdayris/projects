@@ -43,7 +43,9 @@ wildcard_constraints:
 
 rule all:
     input:
-        "qc/Variant_statistics.html"
+        "qc/Variant_statistics.html",
+        "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.tsv",
+        "tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv"
     message:
         "Finishing pipeline"
 

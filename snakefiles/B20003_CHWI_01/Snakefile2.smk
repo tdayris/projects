@@ -259,7 +259,7 @@ rule bcftools_isec:
     conda:
         "../../envs/biotools.yaml"
     params:
-        isec = lambda wildcards: f" --collapse none --exclude '(INFO/DP < 40)' --output-type z --threads 1 --prefix bcftools/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
+        isec = lambda wildcards: f" --collapse none --exclude '(INFO/DP < 40)' --output-type z --threads 1 --prefix bcftools/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ -n '~00001'"
     shell:
         " bcftools isec "
         " {params.isec} "

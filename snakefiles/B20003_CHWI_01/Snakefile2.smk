@@ -16,11 +16,11 @@ singularity: "docker://continuumio/miniconda3:5.0.1"
 rule all:
     input:
         baseline = "bcftool/isec/baseline.vcf.gz",
-        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
+        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
         comparison = expand(
             "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}",
             nb = [f"000{n}" for n in range(0, 5, 1)],
-            allow_missing = True
+            sample = ["S10", "S12", "S14", "S15"]
         )
     message:
         "Finishing pipeline"
@@ -70,7 +70,7 @@ rule define_no_prolif:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
@@ -118,11 +118,11 @@ rule bcftools_isec:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
-        S11_index = "bcftools/compress/S11.vcf.gz.tbi"
+        S11_index = "bcftools/compress/S11.vcf.gz.tbi",
         SXX = "bcftools/compress/{sample}.vcf.gz",
         SXX_index = "bcftools/compress/{sample}.vcf.gz.tbi"
     output:
@@ -144,7 +144,7 @@ rule bcftools_isec:
             lambda wildcards, attempt: attempt * 15
         )
     log:
-        "logs/bcftools/isec/baseline.log"
+        "logs/bcftools/isec/compare_{sample}.log"
     conda:
         "../../envs/biotools.yaml"
     params:

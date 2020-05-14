@@ -259,21 +259,15 @@ rule bcftools_isec:
     conda:
         "../../envs/biotools.yaml"
     params:
-        isec = lambda wildcards: (
-            " --collapse none "
-            " --exclude '(INFO/DP < 40)' "
-            " --output-type z "
-            " --threads 1 "
-            " --prefix bcftools/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
-        )
+        isec = lambda wildcards: f" --collapse none --exclude '(INFO/DP < 40)' --output-type z --threads 1 --prefix bcftools/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
     shell:
         " bcftools isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
-	" {input.S10} "
-	" {input.S11} "
-	" {input.SXX} "
+        " {input.S10} "
+        " {input.S11} "
+        " {input.SXX} "
         " > {log} "
         " 2>&1 "
 
@@ -399,8 +393,8 @@ rule vcf_to_tsv_snpsift_prolif:
         "logs/snpsift/table/{sample}.log"
     shell:
         "SnpSift extractFields "
-    	" {params.extra} "
-    	" {input.vcf} "
+            " {params.extra} "
+            " {input.vcf} "
         " {params.fields} "
         " > {output.tsv} "
         " 2> {log}"
@@ -498,8 +492,8 @@ rule vcf_to_tsv_snpsift_common:
         "logs/snpsift/table/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
     shell:
         "SnpSift extractFields "
-    	" {params.extra} "
-    	" {input.vcf} "
+            " {params.extra} "
+            " {input.vcf} "
         " {params.fields} "
         " > {output.tsv} "
         " 2> {log}"

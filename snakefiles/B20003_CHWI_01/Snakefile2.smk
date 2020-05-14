@@ -532,10 +532,10 @@ rule rename_commons:
         l3 = "logs/rename/commons/3.log",
         l4 = "logs/rename/commons/4.log"
     shell:
-        " cp {params} {input.i1} {output.o1} > {log} 2>&1 && "
-        " cp {params} {input.i2} {output.o2} > {log} 2>&1 && "
-        " cp {params} {input.i3} {output.o3} > {log} 2>&1 && "
-        " cp {params} {input.i4} {output.o4} > {log} 2>&1 "
+        " cp {params} {input.i1} {output.o1} > {log.l1} 2>&1 && "
+        " cp {params} {input.i2} {output.o2} > {log.l2} 2>&1 && "
+        " cp {params} {input.i3} {output.o3} > {log.l3} 2>&1 && "
+        " cp {params} {input.i4} {output.o4} > {log.l4} 2>&1 "
 
 
 rule snpeff_common:

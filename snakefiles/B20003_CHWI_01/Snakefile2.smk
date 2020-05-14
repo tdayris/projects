@@ -45,7 +45,7 @@ rule all:
     input:
         "qc/Variant_statistics.html",
         "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.tsv",
-        "tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv"
+        expand("tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv", sample=sample)
     message:
         "Finishing pipeline"
 
@@ -117,8 +117,8 @@ rule define_base:
     shell:
         " bcftools "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
         " > {output.baseline} "
         " 2> {log} "
 
@@ -131,7 +131,7 @@ rule snpeff_baseline:
         stats="snpeff/JAK2/JAK2.html",
         csvstats="snpeff/JAK2/JAK2.csv"
     message:
-        "Annotating {wildcards.sample} with snpeff"
+        "Annotating JAK2 with snpeff"
     threads:
         2
     resources:
@@ -155,7 +155,7 @@ rule define_no_prolif:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
@@ -189,8 +189,8 @@ rule define_no_prolif:
     shell:
         " bcftools "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
         " {input.S10} "
         " {input.S11} "
         " > {output.baseline} "
@@ -205,8 +205,6 @@ rule snpeff_no_prolif:
         calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.html",
         csvstats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.csv"
-    message:
-        "Annotating {wildcards.sample} with snpeff"
     threads:
         2
     resources:
@@ -231,11 +229,11 @@ rule bcftools_isec:
         S2 = "bcftools/compress/S2.vcf.gz",
         S2_index = "bcftools/compress/S2.vcf.gz.tbi",
         S3 = "bcftools/compress/S3.vcf.gz",
-        S3_index = "bcftools/compress/S3.vcf.gz.tbi"
+        S3_index = "bcftools/compress/S3.vcf.gz.tbi",
         S10 = "bcftools/compress/S10.vcf.gz",
         S10_index = "bcftools/compress/S10.vcf.gz.tbi",
         S11 = "bcftools/compress/S11.vcf.gz",
-        S11_index = "bcftools/compress/S11.vcf.gz.tbi"
+        S11_index = "bcftools/compress/S11.vcf.gz.tbi",
         SXX = "bcftools/compress/{sample}.vcf.gz",
         SXX_index = "bcftools/compress/{sample}.vcf.gz.tbi"
     output:
@@ -257,7 +255,7 @@ rule bcftools_isec:
             lambda wildcards, attempt: attempt * 15
         )
     log:
-        "logs/bcftools/isec/baseline.log"
+        "logs/bcftools/isec/{sample}.log"
     conda:
         "../../envs/biotools.yaml"
     params:
@@ -271,8 +269,11 @@ rule bcftools_isec:
     shell:
         " bcftools "
         " {params.isec} "
-        " {input.S1} "
         " {input.S2} "
+        " {input.S3} "
+	" {input.S10} "
+	" {input.S11} "
+	" {input.SXX} "
         " > {log} "
         " 2>&1 "
 
@@ -283,7 +284,7 @@ rule bcftools_rename:
     output:
         vcf = "bcftool/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
     message:
-        "Renaming vcf {wildcards.nb} for {wildcards.sample}"
+        "Renaming vcf for {wildcards.sample}"
     threads:
         1
     resources:
@@ -298,7 +299,7 @@ rule bcftools_rename:
     params:
         "--verbose"
     log:
-        "logs/bcftools_rename.log"
+        "logs/bcftools/rename/{sample}.log"
     shell:
         " cp {params} {input.vcf} {output.vcf} > {log} 2>&1 "
 
@@ -325,7 +326,7 @@ rule snpeff_compare:
         reference = "GRCm38.86",
         extra = "-Xmx4g"
     log:
-        "logs/snpeff/JAK2.log"
+        "logs/snpeff/variants_present_only_in_{sample}.log"
     wrapper:
         f"{git}/bio/snpeff"
 
@@ -434,15 +435,14 @@ rule prolif_common:
     log:
         "logs/bcftools/isec/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
     shell:
-        " bcftools "
+        " bcftools isec "
         " {params.isec} "
-        " {input.S1} "
-        " {input.S2} "
+        " {input} "
         " > {output} "
         " 2> {log} "
 
 
-rule snpeff_compare:
+rule snpeff_common:
     input:
         "bcftool/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
     output:

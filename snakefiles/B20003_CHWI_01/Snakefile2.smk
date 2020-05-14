@@ -127,7 +127,7 @@ rule snpeff_baseline:
     input:
         "bcftools/isec/JAK2.vcf.gz"
     output:
-        calls="snpeff/JAK2/JAK2.vcf.gz",
+        calls="snpeff/JAK2/JAK2.vcf",
         stats="snpeff/JAK2/JAK2.html",
         csvstats="snpeff/JAK2/JAK2.csv"
     message:
@@ -202,7 +202,7 @@ rule snpeff_no_prolif:
     input:
         "bcftools/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
     output:
-        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
+        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.vcf",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.html",
         csvstats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.csv"
     threads:
@@ -302,7 +302,7 @@ rule snpeff_compare:
     input:
         "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
     output:
-        calls="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz",
+        calls="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.html",
         csvstats="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.csv"
     message:
@@ -440,7 +440,7 @@ rule snpeff_common:
     input:
         "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
     output:
-        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz",
+        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.html",
         csvstats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.csv"
     message:
@@ -465,7 +465,7 @@ rule snpeff_common:
 
 rule vcf_to_tsv_snpsift_common:
     input:
-        vcf = "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
+        vcf = "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf"
     output:
         tsv = report(
             "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.tsv",

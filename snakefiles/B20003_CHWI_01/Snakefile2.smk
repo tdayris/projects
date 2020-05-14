@@ -34,6 +34,7 @@ TSV_fields = [
     "ANN[*].GENEID",
 ]
 
+report: "general.rst"
 
 wildcard_constraints:
     sample = "|".join(sample),
@@ -45,7 +46,8 @@ rule all:
     input:
         "qc/Variant_statistics.html",
         "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.tsv",
-        expand("tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv", sample=sample)
+        expand("tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv", sample=sample),
+        expand("qc/Common_Variants_JAK2_SRSF2_with_proliferation_by_{jak_srsf}.html", jak_srsf = sample)
     message:
         "Finishing pipeline"
 
@@ -325,7 +327,7 @@ rule snpeff_compare:
         f"{git}/bio/snpeff"
 
 
-rule multiqc:
+rule multiqc_only:
     input:
         expand(
             "snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.html",
@@ -334,21 +336,15 @@ rule multiqc:
         expand(
             "snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.csv",
             sample=sample
-        ),
-        "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.html",
-        "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.csv",
-        # "snpeff/JAK2/JAK2.html",
-        # "snpeff/JAK2/JAK2.csv",
-        "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.html",
-        "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.csv"
+        )
     output:
         report(
-            "qc/Variant_statistics.html",
+            "qc/Unique_variants_in_{sample}.html",
             caption="../../reports/MultiQC.report.rst",
             category="Quality Reports"
         )
     message:
-        "Compiling variant metrics"
+        "Compiling variant metrics for {sample}"
     threads:
         1
     resources:
@@ -362,6 +358,41 @@ rule multiqc:
         "logs/multiqc.log"
     wrapper:
         f"{git}/bio/multiqc"
+
+
+
+rule multiqc_common:
+    input:
+        expand(
+            "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.html",
+            sample=sample
+        ),
+        expand(
+            "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.csv",
+            sample=sample
+        )
+    output:
+        report(
+            "qc/Common_Variants_JAK2_SRSF2_with_proliferation_by_{sample}.html",
+            caption="../../reports/MultiQC.report.rst",
+            category="Quality Reports"
+        )
+    message:
+        "Compiling variant metrics for {sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        f"{git}/bio/multiqc"
+
 
 
 rule vcf_to_tsv_snpsift_prolif:
@@ -433,7 +464,10 @@ rule prolif_common:
             sample=sample
         )
     output:
-        "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
+        expand(
+            "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{nb}.vcf.gz",
+            nb = nb
+        )
     message:
         "Finding common variants among samples with a proliferation relapse"
     threads:
@@ -453,7 +487,8 @@ rule prolif_common:
             " --exclude '(INFO/DP < 40)' "
             " --output-type z "
             " --threads 1 "
-            " -n '~1111' "
+            " -n '=3' "
+            " -p JAK2_vs_JAK2_SRSF2_common"
         )
     log:
         "logs/bcftools/isec/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
@@ -465,15 +500,53 @@ rule prolif_common:
         " 2> {log} "
 
 
+rule rename_commons:
+    input:
+        i1 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0001.vcf.gz",
+        i2 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0002.vcf.gz",
+        i3 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0003.vcf.gz",
+        i4 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0004.vcf.gz"
+    output:
+        o1 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S10.vcf.gz",
+        o2 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S12.vcf.gz",
+        o3 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S14.vcf.gz",
+        o4 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S15.vcf.gz"
+    message:
+        "Renaming common searched within JAK2 SRSF2"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/bash.yaml"
+    params:
+        "--verbose"
+    log:
+        l1 = "logs/rename/commons/1.log"
+        l2 = "logs/rename/commons/2.log"
+        l3 = "logs/rename/commons/3.log"
+        l4 = "logs/rename/commons/4.log"
+    shell:
+        " cp {params} {input.i1} {output.o1} > {log} 2>&1 && "
+        " cp {params} {input.i2} {output.o2} > {log} 2>&1 && "
+        " cp {params} {input.i3} {output.o3} > {log} 2>&1 && "
+        " cp {params} {input.i4} {output.o4} > {log} 2>&1 "
+
+
 rule snpeff_common:
     input:
-        "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
+        "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.vcf.gz"
     output:
-        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf",
-        stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.html",
-        csvstats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.csv"
+        calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.vcf",
+        stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.html",
+        csvstats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.csv"
     message:
-        "Annotating common variants among proliferation with snpeff"
+        "Annotating common variants among proliferation for {wildcards.sample}"
     threads:
         2
     resources:
@@ -487,22 +560,22 @@ rule snpeff_common:
         reference = "GRCm38.86",
         extra = "-Xmx4g"
     log:
-        "logs/snpeff/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
+        "logs/snpeff/JAK2_vs_JAK2_SRSF2_common/{sample}.log"
     wrapper:
         f"{git}/bio/snpeff"
 
 
 rule vcf_to_tsv_snpsift_common:
     input:
-        vcf = "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf"
+        vcf = "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.vcf"
     output:
         tsv = report(
-            "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.tsv",
+            "JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/{sample}.tsv",
             caption="../../reports/tsv.rst",
             category="Results"
         )
     message:
-        "Converting VCF to TSV for JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15 only"
+        "Converting VCF to TSV for JAK2_vs_JAK2_SRSF2 {wildcards.sample}"
     threads:
         1
     resources:
@@ -518,11 +591,11 @@ rule vcf_to_tsv_snpsift_common:
         fields = " ".join(TSV_fields),
         extra = "-e '.' -s ','"
     log:
-        "logs/snpsift/table/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
+        "logs/snpsift/table/JAK2_vs_JAK2_SRSF2_common/{sample}.log"
     shell:
         "SnpSift extractFields "
-            " {params.extra} "
-            " {input.vcf} "
+        " {params.extra} "
+        " {input.vcf} "
         " {params.fields} "
         " > {output.tsv} "
         " 2> {log}"

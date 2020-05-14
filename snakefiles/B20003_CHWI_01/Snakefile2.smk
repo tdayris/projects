@@ -488,7 +488,7 @@ rule prolif_common:
             " --output-type z "
             " --threads 1 "
             " -n '=3' "
-            " -p JAK2_vs_JAK2_SRSF2_common"
+            " -p bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/"
         )
     log:
         "logs/bcftools/isec/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"
@@ -496,8 +496,8 @@ rule prolif_common:
         " bcftools isec "
         " {params.isec} "
         " {input.vcf} "
-        " > {output} "
-        " 2> {log} "
+        " > {log} "
+        " 2>&1 "
 
 
 rule rename_commons:

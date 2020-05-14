@@ -55,7 +55,7 @@ rule compression:
         vcf = "bcftools/call/{samples}.vcf"
     output:
         vcf = "bcftools/compress/{samples}.vcf.gz",
-        index = "bcftools/compress/{samples}.vcf.tbi"
+        index = "bcftools/compress/{samples}.vcf.gz.tbi"
     message:
         "Comprssing and indexing {wildcards.samples}"
     threads:

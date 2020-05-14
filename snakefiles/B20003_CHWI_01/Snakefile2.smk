@@ -90,7 +90,7 @@ rule define_base:
         S3 = "bcftools/compress/S3.vcf.gz",
         S3_index = "bcftools/compress/S3.vcf.gz.tbi"
     output:
-        baseline = "bcftool/isec/JAK2.vcf.gz"
+        baseline = "bcftools/isec/JAK2.vcf.gz"
     message:
         "Building baseline with S2 and S3"
     threads:
@@ -115,7 +115,7 @@ rule define_base:
             " -n '-1' "
         )
     shell:
-        " bcftool isec "
+        " bcftools isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
@@ -125,7 +125,7 @@ rule define_base:
 
 rule snpeff_baseline:
     input:
-        "bcftool/isec/JAK2.vcf.gz"
+        "bcftools/isec/JAK2.vcf.gz"
     output:
         calls="snpeff/JAK2/JAK2.vcf.gz",
         stats="snpeff/JAK2/JAK2.html",
@@ -161,7 +161,7 @@ rule define_no_prolif:
         S11 = "bcftools/compress/S11.vcf.gz",
         S11_index = "bcftools/compress/S11.vcf.gz.tbi"
     output:
-        no_prolif = "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
+        no_prolif = "bcftools/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
     message:
         "Building no-proliferation mask with S2 and S3 in one hand, "
         "and S10 and S11 in the other hand"
@@ -187,7 +187,7 @@ rule define_no_prolif:
             " -n '~0011' "
         )
     shell:
-        " bcftool isec "
+        " bcftools isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
@@ -200,7 +200,7 @@ rule define_no_prolif:
 
 rule snpeff_no_prolif:
     input:
-        "bcftool/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz"
     output:
         calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.vcf.gz",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.html",
@@ -238,7 +238,7 @@ rule bcftools_isec:
         SXX_index = "bcftools/compress/{sample}.vcf.gz.tbi"
     output:
         comparison = expand(
-            "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}.vcf.gz",
+            "bcftools/isec/JAK2_vs_JAK2_SRSF2_{sample}/{nb}.vcf.gz",
             nb = nb,
             allow_missing = True
         )
@@ -264,10 +264,10 @@ rule bcftools_isec:
             " --exclude '(INFO/DP < 40)' "
             " --output-type z "
             " --threads 1 "
-            " --prefix bcftool/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
+            " --prefix bcftools/isec/JAK2_vs_JAK2_SRSF2_{wildcards.sample}/ "
         )
     shell:
-        " bcftool isec "
+        " bcftools isec "
         " {params.isec} "
         " {input.S2} "
         " {input.S3} "
@@ -280,9 +280,9 @@ rule bcftools_isec:
 
 rule bcftools_rename:
     input:
-        vcf = "bcftool/isec/JAK2_vs_JAK2_SRSF2_{sample}/0004.vcf.gz"
+        vcf = "bcftools/isec/JAK2_vs_JAK2_SRSF2_{sample}/0004.vcf.gz"
     output:
-        vcf = "bcftool/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
+        vcf = "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
     message:
         "Renaming vcf for {wildcards.sample}"
     threads:
@@ -306,7 +306,7 @@ rule bcftools_rename:
 
 rule snpeff_compare:
     input:
-        "bcftool/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
     output:
         calls="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.html",
@@ -372,7 +372,7 @@ rule multiqc:
 
 rule vcf_to_tsv_snpsift_prolif:
     input:
-        vcf = "bcftool/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
+        vcf = "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
     output:
         tsv = report(
             "tables/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.tsv",
@@ -408,9 +408,9 @@ rule vcf_to_tsv_snpsift_prolif:
 
 rule prolif_common:
     input:
-        expand("bcftool/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz", sample=sample)
+        expand("bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz", sample=sample)
     output:
-        "bcftool/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
     message:
         "Finding common variants among samples with a proliferation relapse"
     threads:
@@ -444,7 +444,7 @@ rule prolif_common:
 
 rule snpeff_common:
     input:
-        "bcftool/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
     output:
         calls="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz",
         stats="snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.html",

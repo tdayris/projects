@@ -193,7 +193,7 @@ rule define_no_prolif:
         " {input.S3} "
         " {input.S10} "
         " {input.S11} "
-        " > {output.baseline} "
+        " > {output.no_prolif} "
         " 2> {log} "
 
 

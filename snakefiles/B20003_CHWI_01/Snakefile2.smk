@@ -424,7 +424,7 @@ rule prolif_common:
             " --exclude '(INFO/DP < 40)' "
             " --output-type z "
             " --threads 1 "
-            " -n '1111' "
+            " -n '~1111' "
         )
     log:
         "logs/bcftools/isec/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.log"

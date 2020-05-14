@@ -344,7 +344,7 @@ rule multiqc_only:
             category="Quality Reports"
         )
     message:
-        "Compiling variant metrics for {sample}"
+        "Compiling variant metrics for {wildcards.sample}"
     threads:
         1
     resources:
@@ -355,7 +355,7 @@ rule multiqc_only:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     log:
-        "logs/multiqc.log"
+        "logs/multiqc/JAK2_SRSF2/{sample}_unique.log"
     wrapper:
         f"{git}/bio/multiqc"
 
@@ -378,7 +378,7 @@ rule multiqc_common:
             category="Quality Reports"
         )
     message:
-        "Compiling variant metrics for {sample}"
+        "Compiling variant metrics for {wildcards.sample}"
     threads:
         1
     resources:
@@ -389,7 +389,7 @@ rule multiqc_common:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     log:
-        "logs/multiqc.log"
+        "logs/multiqci/JAK2_SRSF2/{sample}_common.log"
     wrapper:
         f"{git}/bio/multiqc"
 
@@ -527,9 +527,9 @@ rule rename_commons:
     params:
         "--verbose"
     log:
-        l1 = "logs/rename/commons/1.log"
-        l2 = "logs/rename/commons/2.log"
-        l3 = "logs/rename/commons/3.log"
+        l1 = "logs/rename/commons/1.log",
+        l2 = "logs/rename/commons/2.log",
+        l3 = "logs/rename/commons/3.log",
         l4 = "logs/rename/commons/4.log"
     shell:
         " cp {params} {input.i1} {output.o1} > {log} 2>&1 && "

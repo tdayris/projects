@@ -337,8 +337,8 @@ rule multiqc:
         ),
         "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.html",
         "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_S10_S11.csv",
-        "snpeff/JAK2/JAK2.html",
-        "snpeff/JAK2/JAK2.csv",
+        # "snpeff/JAK2/JAK2.html",
+        # "snpeff/JAK2/JAK2.csv",
         "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.html",
         "snpeff/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.csv"
     output:
@@ -400,9 +400,38 @@ rule vcf_to_tsv_snpsift_prolif:
         " 2> {log}"
 
 
+rule tabix_sample_only:
+    input:
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz"
+    output:
+        "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz.tbi"
+    message:
+        "Indexing {wildcards.sample}-only variants"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    log:
+        "logs/tabix_sample_only.log"
+    wrapper:
+        f"{git}/bio/tabix"
+
+
 rule prolif_common:
     input:
-        expand("bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz", sample=sample)
+        vcf = expand(
+            "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz",
+            sample=sample
+        ),
+        idx = expand(
+            "bcftools/isec/JAK2_vs_JAK2_SRSF2/variants_present_only_in_{sample}.vcf.gz.tbi",
+            sample=sample
+        )
     output:
         "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common_S10_S12_S14_S15.vcf.gz"
     message:

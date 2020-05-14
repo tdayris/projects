@@ -502,10 +502,10 @@ rule prolif_common:
 
 rule rename_commons:
     input:
-        i1 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0001.vcf.gz",
-        i2 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0002.vcf.gz",
-        i3 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0003.vcf.gz",
-        i4 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0004.vcf.gz"
+        i1 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0000.vcf.gz",
+        i2 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0001.vcf.gz",
+        i3 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0002.vcf.gz",
+        i4 = "bcftools/isec/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/0003.vcf.gz"
     output:
         o1 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S10.vcf.gz",
         o2 = "bcftools/renamed/JAK2_vs_JAK2_SRSF2/JAK2_vs_JAK2_SRSF2_common/S12.vcf.gz",

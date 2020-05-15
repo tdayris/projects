@@ -78,7 +78,7 @@ rule bcftools_call:
         samples = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
         indexes = lambda wildcards: design_dict["Bam_Index"][wildcards.sample]
     output:
-        temp("bcftools/call/{sample}.vcf.gz")
+        "bcftools/calls/{sample}.vcf.gz"
     message:
         "Calling variants on {wildcards.sample} with BCFTools"
     threads:

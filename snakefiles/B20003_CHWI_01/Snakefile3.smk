@@ -230,7 +230,7 @@ rule overlap_ctrl_and_no_prolif:
         prefix = "comparison/overlap_ctrl_and_no_prolif"
     shell:
         " bctools isec "
-        " {parms.isec} "
+        " {params.isec} "
         " {input.baseline} "
         " {input.no_prolif} "
         " -p {params.prefix} "
@@ -328,7 +328,7 @@ rule overlap_ctrl_and_prolif:
         prefix = lambda wildcards: f"comparison/prolif_{wildcards.sample}"
     shell:
         " bctools isec "
-        " {parms.isec} "
+        " {params.isec} "
         " {input.baseline} "
         " {input.no_prolif} "
         " -p {params.prefix} "

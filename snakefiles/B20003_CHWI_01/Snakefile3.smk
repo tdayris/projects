@@ -125,10 +125,10 @@ rule tabix_call:
 
 rule define_control_baseline:
     input:
-        S2 = "bcftools/call/S2.vcf.gz",
-        S2_index = "bcftools/call/S2.vcf.gz.tbi",
-        S3 = "bcftools/call/S3.vcf.gz",
-        S3_index = "bcftools/call/S3.vcf.gz.tbi"
+        S2 = "bcftools/call/JAK2_S2.vcf.gz",
+        S2_index = "bcftools/call/JAK2_S2.vcf.gz.tbi",
+        S3 = "bcftools/call/JAK2_S3.vcf.gz",
+        S3_index = "bcftools/call/JAK2_S3.vcf.gz.tbi"
     output:
         merge = "comparisons/baseline.vcf"
     message:
@@ -159,10 +159,10 @@ rule define_control_baseline:
 
 rule define_no_prolif_baseline:
     input:
-        S11 = "bcftools/call/S11.vcf.gz",
-        S11_index = "bcftools/call/S11.vcf.gz.tbi",
-        S13 = "bcftools/call/S13.vcf.gz",
-        S13_index = "bcftools/call/S13.vcf.gz.tbi"
+        S11 = "bcftools/call/JAK2_SRSF2_S11.vcf.gz",
+        S11_index = "bcftools/call/JAK2_SRSF2_S11.vcf.gz.tbi",
+        S13 = "bcftools/call/JAK2_SRSF2_S13.vcf.gz",
+        S13_index = "bcftools/call/JAK2_SRSF2_S13.vcf.gz.tbi"
     output:
         merge = "comparisons/no_prolif_baseline.vcf"
     message:
@@ -255,14 +255,14 @@ rule overlap_ctrl_and_no_prolif:
 
 rule define_ctrl_and_no_prolif_baseline:
     input:
-        S11 = "bcftools/call/S11.vcf.gz",
-        S11_index = "bcftools/call/S11.vcf.gz.tbi",
-        S13 = "bcftools/call/S13.vcf.gz",
-        S13_index = "bcftools/call/S13.vcf.gz.tbi",
-        S2 = "bcftools/call/S2.vcf.gz",
-        S2_index = "bcftools/call/S2.vcf.gz.tbi",
-        S3 = "bcftools/call/S3.vcf.gz",
-        S3_index = "bcftools/call/S3.vcf.gz.tbi"
+        S11 = "bcftools/call/JAK2_SRSF2_S11.vcf.gz",
+        S11_index = "bcftools/call/JAK2_SRSF2_S11.vcf.gz.tbi",
+        S13 = "bcftools/call/JAK2_SRSF2_S13.vcf.gz",
+        S13_index = "bcftools/call/JAK2_SRSF2_S13.vcf.gz.tbi",
+        S2 = "bcftools/call/JAK2_S2.vcf.gz",
+        S2_index = "bcftools/call/JAK2_S2.vcf.gz.tbi",
+        S3 = "bcftools/call/JAK2_S3.vcf.gz",
+        S3_index = "bcftools/call/JAK2_S3.vcf.gz.tbi"
     output:
         merge = "comparisons/ctrl_and_no_prolif_baseline.vcf"
     message:

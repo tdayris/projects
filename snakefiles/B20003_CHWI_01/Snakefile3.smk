@@ -296,9 +296,7 @@ rule define_ctrl_and_no_prolif_baseline:
 rule overlap_ctrl_and_prolif:
     input:
         baseline = "comparisons/ctrl_and_no_prolif_baseline.vcf",
-        no_prolif = (
-            lambda wildcards: f"bcftools/call/{rev_sample[wildcards.sample]}.vcf.gz"
-        )
+        no_prolif = "bcftools/call/{sample}.vcf.gz"
     output:
         baseline_only = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_not_in_{sample}.vcf",
         baseline_shared = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_shared_with_{sample}.vcf",

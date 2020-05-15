@@ -45,20 +45,10 @@ TSV_fields = [
 ]
 
 report: "general.rst"
-
 wildcard_constraints:
     sample_short_id = "|".join(samples.keys()),
     sample = "|".join(samples.values()),
     numbers = "|".join(numbers_list)
-
-rule all:
-    input:
-        # TODO: Fill this with final files
-        "qc/Complete_report.html",
-        "qc/Baseline_report.html"
-    message:
-        "Finishing pipeline"
-
 
 design_path = Path("design_calling.csv")
 if not design_path.exists():
@@ -71,10 +61,15 @@ design = pandas.read_csv(
     index_col=0,
     dtype=str
 )
-
 design_dict = design.to_dict()
 FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 
+rule all:
+    input:
+        "qc/Complete_report.html",
+        "qc/Baseline_report.html"
+    message:
+        "Finishing pipeline"
 
 
 rule bcftools_call:
@@ -463,7 +458,7 @@ rule prolif_baseline_report:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     log:
-        "logs/multiqc/baseline/{status}_{sample}.log"
+        "logs/multiqc/baseline/baseline.log"
     wrapper:
         f"{git}/bio/multiqc"
 
@@ -499,6 +494,6 @@ rule complete_report:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     log:
-        "logs/multiqc/baseline/{status}_{sample}.log"
+        "logs/multiqc/complete.log"
     wrapper:
         f"{git}/bio/multiqc"

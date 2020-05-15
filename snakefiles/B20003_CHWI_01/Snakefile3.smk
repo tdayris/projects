@@ -54,6 +54,8 @@ wildcard_constraints:
 rule all:
     input:
         # TODO: Fill this with final files
+        "qc/Complete_report.html",
+        "qc/Baseline_report.html"
     message:
         "Finishing pipeline"
 

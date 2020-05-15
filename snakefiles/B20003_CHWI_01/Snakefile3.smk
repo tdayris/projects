@@ -436,7 +436,7 @@ rule prolif_baseline_report:
     input:
         expand(
             "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.{ext}",
-            sample=["S10", "S12", "S14", "S15"],
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"],
             ext=["csv", "html"]
         )
@@ -467,12 +467,12 @@ rule complete_report:
     input:
         expand(
             "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
-            sample=["S10", "S12", "S14", "S15"],
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
             "comparison/annotated/prolif_{sample}/{sample}_{status}.{ext}",
-            sample=["S10", "S12", "S14", "S15"],
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["only", "shared"],
             ext=["csv", "html"]
         )

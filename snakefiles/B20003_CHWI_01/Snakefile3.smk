@@ -92,7 +92,7 @@ rule bcftools_call:
         )
     params:
         mpileup = "--adjust-MQ 50 --min-MQ 10 --min-BQ 15",
-        call = "--consensus-caller --pval-threshold 0.05 --variants-only --output-type z --threads 1"
+        call = "--prior 0.001 --variants-only --output-type z --threads 1"
     log:
         "logs/bcftools/call/{sample}.log"
     wrapper:

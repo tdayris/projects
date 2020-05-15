@@ -217,7 +217,7 @@ rule overlap_ctrl_and_no_prolif:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
-        "../../envs/biotools"
+        "../../envs/biotools.yaml"
     log:
         isec = "logs/overlap_ctrl_and_no_prolif.log",
         mv_jak2_only = "logs/mv_jak2_only.log",
@@ -315,7 +315,7 @@ rule overlap_ctrl_and_prolif:
             lambda wildcards, attempt: min(attempt * 20, 200)
         )
     conda:
-        "../../envs/biotools"
+        "../../envs/biotools.yaml"
     log:
         isec = "logs/overlap_ctrl_and_no_prolif_{sample}.log",
         mv_baseline_only = "logs/mv_baseline_only_{sample}.log",

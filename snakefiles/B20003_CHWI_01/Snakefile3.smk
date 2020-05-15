@@ -78,7 +78,7 @@ rule bcftools_call:
         samples = lambda wildcards: design_dict["Bam_File"][wildcards.sample],
         indexes = lambda wildcards: design_dict["Bam_Index"][wildcards.sample]
     output:
-        "bcftools/calls/{sample}.vcf.gz"
+        "bcftools/call/{sample}.vcf.gz"
     message:
         "Calling variants on {wildcards.sample} with BCFTools"
     threads:
@@ -101,9 +101,9 @@ rule bcftools_call:
 
 rule tabix_call:
     input:
-        "bcftools/calls/{sample}.vcf.gz"
+        "bcftools/call/{sample}.vcf.gz"
     output:
-        "bcftools/calls/{sample}.vcf.gz.tbi"
+        "bcftools/call/{sample}.vcf.gz.tbi"
     message:
         "Indexing snpeff result for {wildcards.sample}"
     threads:

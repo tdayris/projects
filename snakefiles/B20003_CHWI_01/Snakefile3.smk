@@ -324,7 +324,8 @@ rule overlap_ctrl_and_prolif:
     input:
         baseline = "comparisons/ctrl_and_no_prolif_baseline.vcf.gz",
         baseline_idx = "comparisons/ctrl_and_no_prolif_baseline.vcf.gz.tbi",
-        no_prolif = "bcftools/call/{sample}.vcf.gz"
+        no_prolif = "bcftools/call/{sample}.vcf.gz",
+        no_prolif_index = "bcftools/call/{sample}.vcf.gz.tbi",
     output:
         baseline_only = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_not_in_{sample}.vcf",
         baseline_shared = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_shared_with_{sample}.vcf",

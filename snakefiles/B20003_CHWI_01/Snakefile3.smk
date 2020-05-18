@@ -250,7 +250,7 @@ rule overlap_ctrl_and_no_prolif:
         " mv {params.mv} "
         " {params.prefix}/0003.vcf "
         " {params.prefix}/JAK2_SRSF2_also_in_JAK2.vcf "
-        " > {log.mv_jak2_srsf2_shared} 2>&1 && "
+        " > {log.mv_jak2_srsf2_shared} 2>&1 "
 
 
 rule define_ctrl_and_no_prolif_baseline:

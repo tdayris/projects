@@ -348,7 +348,7 @@ rule overlap_ctrl_and_prolif:
         " mv {params.mv} "
         " {params.prefix}/0003.vcf "
         " {output.sample_shared} "
-        " > {log.mv_sample_shared} 2>&1 && "
+        " > {log.mv_sample_shared} 2>&1 "
 
 
 rule baseline_annotate:

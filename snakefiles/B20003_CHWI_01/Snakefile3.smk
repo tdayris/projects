@@ -384,7 +384,7 @@ rule baseline_annotate:
     input:
         "comparisons/ctrl_and_no_prolif_baseline.vcf"
     output:
-        "comparisons/annotated/ctrl_and_no_prolif_baseline.vcf"
+        "comparisons/snpeff/ctrl_and_no_prolif_baseline.vcf"
     message:
         "Annotating JAK2 and JAK2-SRSF2-no-prolif with snpeff"
     threads:
@@ -409,9 +409,9 @@ rule annotate_prolif:
     input:
         "comparison/prolif_{sample}/{sample}_{status}.vcf"
     output:
-        calls = "comparison/annotated/prolif_{sample}/{sample}_{status}.vcf",
-        stats = "comparison/annotated/prolif_{sample}/{sample}_{status}.csv",
-        csvstats = "comparison/annotated/prolif_{sample}/{sample}_{status}.html"
+        calls = "comparison/snpeff/prolif_{sample}/{sample}_{status}.vcf",
+        stats = "comparison/snpeff/prolif_{sample}/{sample}_{status}.csv",
+        csvstats = "comparison/snpeff/prolif_{sample}/{sample}_{status}.html"
     message:
         "Annotating {wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -436,9 +436,9 @@ rule annotate_prolif_baseline:
     input:
         "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
-        calls = "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
-        stats = "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
-        csvstats = "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
+        calls = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
+        stats = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+        csvstats = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
     message:
         "Annotating not-in-{wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -462,7 +462,7 @@ rule annotate_prolif_baseline:
 rule prolif_baseline_report:
     input:
         expand(
-            "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.{ext}",
+            "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.{ext}",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"],
             ext=["csv", "html"]
@@ -493,12 +493,12 @@ rule prolif_baseline_report:
 rule complete_report:
     input:
         expand(
-            "comparison/annotated/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+            "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
-            "comparison/annotated/prolif_{sample}/{sample}_{status}.{ext}",
+            "comparison/snpeff/prolif_{sample}/{sample}_{status}.{ext}",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["only", "shared"],
             ext=["csv", "html"]

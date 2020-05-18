@@ -411,7 +411,7 @@ rule annotate_prolif:
     output:
         calls = "comparison/snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
         stats = "comparison/snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
-        csvstats = "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.tml"
+        csvstats = "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.html"
     message:
         "Annotating {wildcards.sample} ({wildcards.status}) with snpeff"
     threads:

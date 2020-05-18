@@ -502,7 +502,17 @@ rule complete_report:
             status=["not_in", "shared_with"]
         ),
         expand(
+            "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
+            status=["not_in", "shared_with"]
+        ),
+        expand(
             "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.html",
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
+            status=["only", "shared"]
+        ),
+        expand(
+            "comparison/snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["only", "shared"]
         )

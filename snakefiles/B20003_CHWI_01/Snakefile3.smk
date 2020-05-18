@@ -409,9 +409,9 @@ rule annotate_prolif:
     input:
         "comparison/prolif_{sample}/{sample}_{status}.vcf"
     output:
-        calls = "comparison/snpeff/prolif_{sample}/{sample}_{status}.vcf",
-        stats = "comparison/snpeff/prolif_{sample}/{sample}_{status}.csv",
-        csvstats = "comparison/snpeff/prolif_{sample}/{sample}_{status}.html"
+        calls = "comparison/snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
+        stats = "comparison/snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
+        csvstats = "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.tml"
     message:
         "Annotating {wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -436,9 +436,9 @@ rule annotate_prolif_baseline:
     input:
         "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
-        calls = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
-        stats = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
-        csvstats = "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
+        calls = "comparison/snpeff/call/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
+        stats = "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+        csvstats = "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
     message:
         "Annotating not-in-{wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -462,10 +462,14 @@ rule annotate_prolif_baseline:
 rule prolif_baseline_report:
     input:
         expand(
-            "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.{ext}",
+            "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.stats",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
-            status=["not_in", "shared_with"],
-            ext=["csv", "html"]
+            status=["not_in", "shared_with"]
+        ),
+        expand(
+            "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
+            sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
+            status=["not_in", "shared_with"]
         )
     output:
         report(
@@ -493,15 +497,14 @@ rule prolif_baseline_report:
 rule complete_report:
     input:
         expand(
-            "comparison/snpeff/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+            "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
-            "comparison/snpeff/prolif_{sample}/{sample}_{status}.{ext}",
+            "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.html",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
-            status=["only", "shared"],
-            ext=["csv", "html"]
+            status=["only", "shared"]
         )
     output:
         report(

@@ -293,9 +293,36 @@ rule define_ctrl_and_no_prolif_baseline:
         " > {log} 2>&1 "
 
 
+rule compress_and_index_basline:
+    input:
+        vcf = "comparisons/ctrl_and_no_prolif_baseline.vcf"
+    output:
+        vcf = "comparisons/ctrl_and_no_prolif_baseline.vcf.gz",
+        tbi = "comparisons/ctrl_and_no_prolif_baseline.vcf.gz.tbi"
+    message:
+        "Indexing and compressing baseline"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/biotools.yaml"
+    log:
+        bgzip = "logs/compress_and_index_basline/bgzip.log",
+        tabix = "logs/compress_and_index_basline/tabix.log",
+    shell:
+        "bgzip -c {input.vcf} > {output.vcf} 2> {log.bgzip} && "
+        " tabix -p vcf {output.vcf} > {log.tabix} 2>&1 "
+
+
 rule overlap_ctrl_and_prolif:
     input:
-        baseline = "comparisons/ctrl_and_no_prolif_baseline.vcf",
+        baseline = "comparisons/ctrl_and_no_prolif_baseline.vcf.gz",
         no_prolif = "bcftools/call/{sample}.vcf.gz"
     output:
         baseline_only = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_not_in_{sample}.vcf",

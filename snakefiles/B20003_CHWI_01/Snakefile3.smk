@@ -42,6 +42,7 @@ TSV_fields = [
     "ANN[*].CDNA_POS",
     "DP",
     "ANN[*].GENEID",
+    "AF"
 ]
 
 report: "general.rst"
@@ -549,9 +550,34 @@ rule complete_report:
         f"{git}/bio/multiqc"
 
 
-rule prolif_to_tsv:
+rule add_af_baseline:
     input:
         vcf = "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
+    output:
+        vcf = "af/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
+    message:
+        "Adding AF to VCF files for baseline_S2_S3_S11_S13"
+        "{wildcards.status}_{wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/python3.8.yaml"
+    log:
+        "logs/af/{sample}_{status}.log"
+    script:
+        "../../scripts/compute_vaf_from_dp4.py"
+
+
+rule baseline_to_tsv:
+    input:
+        vcf = "af/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
         tsv = "comparisons/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv"
     message:
@@ -582,9 +608,34 @@ rule prolif_to_tsv:
         " 2> {log}"
 
 
-rule baselines_to_tsv:
+rule add_af_prolif:
     input:
         vcf = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf"
+    output:
+        vcf = "af/prolif_{sample}/{sample}_{status}.vcf"
+    message:
+        "Adding AF to VCF files for baseline_S2_S3_S11_S13"
+        "{wildcards.status}_{wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/python3.8.yaml"
+    log:
+        "logs/af/{sample}_{status}.log"
+    script:
+        "../../scripts/compute_vaf_from_dp4.py"
+
+
+rule prolif_to_tsv:
+    input:
+        vcf = "af/prolif_{sample}/{sample}_{status}.vcf"
     output:
         tsv = "comparisons/table/{sample}_{status}.tsv"
     message:

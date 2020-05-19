@@ -10,7 +10,7 @@ if sys.version_info < (3, 8):
     raise SystemError("Please use Python 3.8 or later")
 
 min_version('5.16.0')
-git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers.Unofficial"
+git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
 containers: "docker://continuumio/miniconda3:5.0.1"
 
 design_path = Path("design.tsv")

@@ -213,7 +213,7 @@ rule salmon_index:
 
 def salmon_sample_pair_w(wildcards: Any) -> Dict[str, str]:
     return {
-        "r1": design_dict[Upstream_file][wildcards.sample]
+        "r1": design_dict[Upstream_file][wildcards.sample],
         "r2": design_dict[Downstream_file][wildcards.sample]
     }
 

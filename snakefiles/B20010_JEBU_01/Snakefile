@@ -13,6 +13,12 @@ min_version('5.16.0')
 git = "https://raw.githubusercontent.com/tdayris/snakemake-wrappers/Unofficial"
 containers: "docker://continuumio/miniconda3:5.0.1"
 
+rule all:
+    input:
+        dotplots = "quanTIseq/cell_fraction_dotplot.png",
+        histogram = "quanTIseq/cell_fraction_histogram.png"
+
+
 rule copy_quantiseq_image:
     input:
         "/mnt/beegfs/userdata/t_dayris/devs/quantiseq2.img"

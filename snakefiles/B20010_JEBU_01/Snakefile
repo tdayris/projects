@@ -47,7 +47,7 @@ rule copy_quantiseq_image:
 
 rule filter_counts:
     input:
-        "salmon/aggregated/TPM.counts.tsv"
+        "rna-workflow/aggregated_salmon_counts/TPM.genes.sf.annotated.tsv"
     output:
         "quanTIseq/TPM.tsv"
     message:

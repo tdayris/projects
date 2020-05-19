@@ -67,7 +67,17 @@ FASTA = "resources/Mus_musculus.GRCm38.dna.toplevel.fa"
 rule all:
     input:
         "qc/Complete_report.html",
-        "qc/Baseline_report.html"
+        "qc/Baseline_report.html",
+        expand(
+            "comparison/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv",
+            status = ["not_in", "shared_with"],
+            sample = ["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"]
+        ),
+        expand(
+            "comparison/table/{sample}_{status}.tsv",
+            sample = ["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
+            status = ["only", "shared"]
+        )
     message:
         "Finishing pipeline"
 
@@ -537,3 +547,69 @@ rule complete_report:
         "logs/multiqc/complete.log"
     wrapper:
         f"{git}/bio/multiqc"
+
+
+rule prolif_to_tsv:
+    input:
+        vcf = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
+    output:
+        tsv = "comparison/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv"
+    message:
+        "Building table out of VCF files for baseline_S2_S3_S11_S13"
+        "{wildcards.status}_{wildcards.sample}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/biotools.yaml"
+    params:
+        fields = " ".join(TSV_fields),
+        extra = "-e '.' -s ','"
+    log:
+        "logs/prolif_to_tsv/{sample}_{status}.log"
+    shell:
+        "SnpSift extractFields "
+        " {params.extra} "
+        " {input.vcf} "
+        " {params.fields} "
+        " > {output.tsv} "
+        " 2> {log}"
+
+
+rule baselines_to_tsv:
+    input:
+        vcf = "comparison/snpeff/call/prolif_{sample}/{sample}_{status}.vcf"
+    output:
+        tsv = "comparison/table/{sample}_{status}.tsv"
+    message:
+        "Building table out of VCF files for "
+        "{wildcards.sample}_{wildcards.status}"
+    threads:
+        1
+    resources:
+        mem_mb = (
+            lambda wildcards, attempt: min(attempt * 1024, 10240)
+        ),
+        time_min = (
+            lambda wildcards, attempt: min(attempt * 20, 200)
+        )
+    conda:
+        "../../envs/biotools.yaml"
+    params:
+        fields = " ".join(TSV_fields),
+        extra = "-e '.' -s ','"
+    log:
+        "logs/prolif_to_tsv/{sample}_{status}.log"
+    shell:
+        "SnpSift extractFields "
+        " {params.extra} "
+        " {input.vcf} "
+        " {params.fields} "
+        " > {output.tsv} "
+        " 2> {log}"

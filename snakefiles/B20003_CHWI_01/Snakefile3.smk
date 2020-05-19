@@ -419,9 +419,9 @@ rule annotate_prolif:
     input:
         "comparison/prolif_{sample}/{sample}_{status}.vcf"
     output:
-        calls = "comparison/snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
-        stats = "comparison/snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
-        csvstats = "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.html"
+        calls = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
+        stats = "snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
+        csvstats = "snpeff/report/prolif_{sample}/{sample}_{status}.html"
     message:
         "Annotating {wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -446,9 +446,9 @@ rule annotate_prolif_baseline:
     input:
         "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
-        calls = "comparison/snpeff/call/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
-        stats = "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
-        csvstats = "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
+        calls = "snpeff/call/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
+        stats = "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+        csvstats = "snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
     message:
         "Annotating not-in-{wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -472,12 +472,12 @@ rule annotate_prolif_baseline:
 rule prolif_baseline_report:
     input:
         expand(
-            "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+            "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
-            "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
+            "snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         )
@@ -507,22 +507,22 @@ rule prolif_baseline_report:
 rule complete_report:
     input:
         expand(
-            "comparison/snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
+            "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
-            "comparison/snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
+            "snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["not_in", "shared_with"]
         ),
         expand(
-            "comparison/snpeff/report/prolif_{sample}/{sample}_{status}.html",
+            "snpeff/report/prolif_{sample}/{sample}_{status}.html",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["only", "shared"]
         ),
         expand(
-            "comparison/snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
+            "snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
             sample=["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status=["only", "shared"]
         )
@@ -584,7 +584,7 @@ rule prolif_to_tsv:
 
 rule baselines_to_tsv:
     input:
-        vcf = "comparison/snpeff/call/prolif_{sample}/{sample}_{status}.vcf"
+        vcf = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf"
     output:
         tsv = "comparison/table/{sample}_{status}.tsv"
     message:

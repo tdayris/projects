@@ -303,7 +303,8 @@ case "$container" in
       fi
       # define parameters as environment variables:
       singularity_run="$singularity_run $bindMount ./quantiseq2.img $singularity_vars --rmgenes=$rmgenes"
-      # echo $singularity_run
+      unsquashfs --help
+      echo $singularity_run
       $singularity_run
       ;;
 esac

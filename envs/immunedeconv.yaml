@@ -6,11 +6,12 @@ channels:
   - defaults
   - r
 dependencies:
-  - conda-forge:r-dplyr=0.8.5 
-  - conda-forge:r-tidyr=1.0.2 
-  - conda-forge:r-ggplot2=3.3.0 
-  - conda-forge:cairo=1.16.0 
-  - conda-forge:r-cairo=1.5_11 
-  - conda-forge:r-tibble=3.0.0 
-  - bioconda:r-immunedeconv=2.0.1 
-  - conda-forge:singularity=3.5.3 
+  - conda-forge:r-dplyr=0.8.5
+  - conda-forge:r-tidyr=1.0.2
+  - conda-forge:r-ggplot2=3.3.0
+  - conda-forge:cairo=1.16.0
+  - conda-forge:r-cairo=1.5_11
+  - conda-forge:r-tibble=3.0.0
+  - bioconda:r-immunedeconv=2.0.1
+  - conda-forge:singularity=3.5.3
+  - conda-forge:squashfs-tools=4.3 

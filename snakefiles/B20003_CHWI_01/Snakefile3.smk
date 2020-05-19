@@ -69,12 +69,12 @@ rule all:
         "qc/Complete_report.html",
         "qc/Baseline_report.html",
         expand(
-            "comparison/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv",
+            "comparisons/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv",
             status = ["not_in", "shared_with"],
             sample = ["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"]
         ),
         expand(
-            "comparison/table/{sample}_{status}.tsv",
+            "comparisons/table/{sample}_{status}.tsv",
             sample = ["JAK2_SRSF2_S10", "JAK2_SRSF2_S12", "JAK2_SRSF2_S14", "JAK2_SRSF2_S15"],
             status = ["only", "shared"]
         )
@@ -207,7 +207,7 @@ rule overlap_ctrl_and_no_prolif:
         no_prolif = "comparisons/no_prolif_baseline.vcf"
     output:
         isec = expand(
-            "comparison/overlap_ctrl_and_no_prolif/{subsets}.vcf",
+            "comparisons/overlap_ctrl_and_no_prolif/{subsets}.vcf",
             subsets = [
                 "JAK2_only",
                 "JAK2_SRSF2_only",
@@ -237,7 +237,7 @@ rule overlap_ctrl_and_no_prolif:
     params:
         isec = "--collapse none --exclude '(INFO/DP < 40)' --output-type v",
         mv = "--verbose --force",
-        prefix = "comparison/overlap_ctrl_and_no_prolif"
+        prefix = "comparisons/overlap_ctrl_and_no_prolif"
     shell:
         " bcftools isec "
         " {params.isec} "
@@ -337,10 +337,10 @@ rule overlap_ctrl_and_prolif:
         no_prolif = "bcftools/call/{sample}.vcf.gz",
         no_prolif_index = "bcftools/call/{sample}.vcf.gz.tbi",
     output:
-        baseline_only = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_not_in_{sample}.vcf",
-        baseline_shared = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_shared_with_{sample}.vcf",
-        sample_only = "comparison/prolif_{sample}/{sample}_only.vcf",
-        sample_shared = "comparison/prolif_{sample}/{sample}_shared.vcf",
+        baseline_only = "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_not_in_{sample}.vcf",
+        baseline_shared = "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_shared_with_{sample}.vcf",
+        sample_only = "comparisons/prolif_{sample}/{sample}_only.vcf",
+        sample_shared = "comparisons/prolif_{sample}/{sample}_shared.vcf",
     message:
         "All overlapping sets for control and "
         "non-proliferation vs {wildcards.sample}"
@@ -364,7 +364,7 @@ rule overlap_ctrl_and_prolif:
     params:
         isec = "--collapse none --exclude '(INFO/DP < 40)' --output-type v",
         mv = "--verbose --force",
-        prefix = lambda wildcards: f"comparison/prolif_{wildcards.sample}"
+        prefix = lambda wildcards: f"comparisons/prolif_{wildcards.sample}"
     shell:
         " bcftools isec "
         " {params.isec} "
@@ -417,7 +417,7 @@ rule baseline_annotate:
 
 rule annotate_prolif:
     input:
-        "comparison/prolif_{sample}/{sample}_{status}.vcf"
+        "comparisons/prolif_{sample}/{sample}_{status}.vcf"
     output:
         calls = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
         stats = "snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
@@ -444,7 +444,7 @@ rule annotate_prolif:
 
 rule annotate_prolif_baseline:
     input:
-        "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
+        "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
         calls = "snpeff/call/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
         stats = "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
@@ -551,9 +551,9 @@ rule complete_report:
 
 rule prolif_to_tsv:
     input:
-        vcf = "comparison/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
+        vcf = "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
-        tsv = "comparison/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv"
+        tsv = "comparisons/table/baseline_S2_S3_S11_S13_{status}_{sample}.tsv"
     message:
         "Building table out of VCF files for baseline_S2_S3_S11_S13"
         "{wildcards.status}_{wildcards.sample}"
@@ -586,7 +586,7 @@ rule baselines_to_tsv:
     input:
         vcf = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf"
     output:
-        tsv = "comparison/table/{sample}_{status}.tsv"
+        tsv = "comparisons/table/{sample}_{status}.tsv"
     message:
         "Building table out of VCF files for "
         "{wildcards.sample}_{wildcards.status}"

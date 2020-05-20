@@ -395,7 +395,9 @@ rule baseline_annotate:
     input:
         "comparisons/ctrl_and_no_prolif_baseline.vcf"
     output:
-        "comparisons/snpeff/ctrl_and_no_prolif_baseline.vcf"
+        call = "comparisons/snpeff/ctrl_and_no_prolif_baseline.vcf",
+        stats = "comparisons/snpeff/report/ctrl_and_no_prolif_baseline.html",
+        csvstats = "comparisons/snpeff/stats/ctrl_and_no_prolif_baseline.csv",
     message:
         "Annotating JAK2 and JAK2-SRSF2-no-prolif with snpeff"
     threads:
@@ -421,8 +423,8 @@ rule annotate_prolif:
         "comparisons/prolif_{sample}/{sample}_{status}.vcf"
     output:
         calls = "snpeff/call/prolif_{sample}/{sample}_{status}.vcf",
-        stats = "snpeff/stats/prolif_{sample}/{sample}_{status}.csv",
-        csvstats = "snpeff/report/prolif_{sample}/{sample}_{status}.html"
+        stats = "snpeff/report/prolif_{sample}/{sample}_{status}.html",
+        csvstats = "snpeff/stats/prolif_{sample}/{sample}_{status}.csv"
     message:
         "Annotating {wildcards.sample} ({wildcards.status}) with snpeff"
     threads:
@@ -448,8 +450,8 @@ rule annotate_prolif_baseline:
         "comparisons/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf"
     output:
         calls = "snpeff/call/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.vcf",
-        stats = "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv",
-        csvstats = "snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html"
+        stats = "snpeff/report/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.html",
+        csvstats = "snpeff/stats/prolif_{sample}/baseline_S2_S3_S11_S13_{status}_{sample}.csv"
     message:
         "Annotating not-in-{wildcards.sample} ({wildcards.status}) with snpeff"
     threads:

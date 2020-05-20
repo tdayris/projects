@@ -9,7 +9,7 @@ new_header = ('##INFO=<ID=AF,Number=1,Type=Float,'
               'and reads supporting reference">')
 
 
-with open(snakemake.input["vcf"], r) as infile, open(snakemake.output["vcf"] as outfile):
+with open(snakemake.input["vcf"], "r") as infile, open(snakemake.output["vcf"], "w") as outfile:
     for line in infile:
         if line.startswith("#"):
             outfile.write(line)

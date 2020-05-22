@@ -79,7 +79,7 @@ rule samtools_flagstat:
     message:
         "Gathering statistics over {wildcards.bam}'s mapping"
     threads:
-
+        1
     resources:
         mem_mb = (
             lambda wildcards, attempt: min(attempt * 1024, 10240)

@@ -128,7 +128,7 @@ rule fastqc:
     input:
         "www.cnrgh.fr/data/GENETS/fastq/set1/{fastq}.fastq.gz"
     output:
-        tmp("fastqc/{fastq}_fastqc.html")
+        temp("fastqc/{fastq}_fastqc.html")
     message:
         "QC on {wildcards.fastq}'s fastq"
     threads:

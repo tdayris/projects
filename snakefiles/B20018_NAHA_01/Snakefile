@@ -19,7 +19,7 @@ vcf_dict = Path("filtres/results/")
 
 bam_dict = {
     f.stem: str(f.absolute())
-    for f in bam_path.iterfir()
+    for f in bam_path.iterdir()
     if str(f.name).endswith("bam")
 }
 

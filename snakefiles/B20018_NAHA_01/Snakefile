@@ -24,7 +24,7 @@ bam_dict = {
 }
 
 fastq_dict = {
-    f.stem: str(f.absolute())
+    f.stem[:-len(".fastq")]: str(f.absolute())
     for f in fastq_path.iterdir()
     if str(f.name).endswith("fastq.gz")
 }

@@ -26,13 +26,13 @@ bam_dict = {
 fastq_dict = {
     f.stem: str(f.absolute())
     for f in fastq_path.iterdir()
-    if str(f.name).endswith"fastq.gz"
+    if str(f.name).endswith("fastq.gz")
 }
 
 vcf_dict = {
     f.stem: str(f.absolute())
     for f in fastq_path.iterdir()
-    if str(f.name).endswith"vcf.gz"
+    if str(f.name).endswith("vcf.gz")
 }
 
 wildcard_constraints:
